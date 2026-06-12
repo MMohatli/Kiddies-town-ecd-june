@@ -13,6 +13,7 @@ import {
   initialPaymentHistory, initialChatHistory, initialWeeklyThemes, 
   initialSchoolEvents, initialJournalPosts, initialEnrolments 
 } from "./src/data/mockData";
+import { generateGuidePDF } from "./src/lib/generatePdf";
 
 const app = express();
 const PORT = 3000;
@@ -197,6 +198,20 @@ async function bootstrapSchema() {
 bootstrapSchema();
 
 // --- REST API ENDPOINTS ---
+
+// GET: Generate and Stream Step-by-Step Curriculum Guide PDF
+app.get("/api/guide/download-pdf", async (req, res) => {
+  try {
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", 'attachment; filename="Kiddies_Town_Development_Guide.pdf"');
+    await generateGuidePDF(res);
+  } catch (err: any) {
+    console.error("Failed to generate curriculum PDF:", err);
+    if (!res.headersSent) {
+      res.status(500).json({ error: "Could not generate educational PDF document" });
+    }
+  }
+});
 
 // GET: All active dashboard collections
 app.get("/api/all-data", async (req, res) => {

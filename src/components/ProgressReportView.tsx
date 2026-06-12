@@ -1,5 +1,6 @@
 import { ProgressReport, Learner } from '../types';
 import { Award, Check, FileText, ArrowLeft, Printer, AlertCircle } from 'lucide-react';
+import KiddiesTownLogo from './KiddiesTownLogo';
 
 interface ProgressReportProps {
   report: ProgressReport;
@@ -149,15 +150,7 @@ export default function ProgressReportView({ report, learner, onBack }: Progress
       <div className="text-center mb-8 border-b-2 border-indigo-100 pb-6">
         <div className="flex justify-between items-center mb-4">
           <div className="text-left flex items-center gap-3">
-            <img 
-              src="https://graph.facebook.com/100084221528687/picture?type=large" 
-              alt="Kiddies Town Logo" 
-              className="w-12 h-12 rounded-full object-cover border border-indigo-200/50 shadow-xs"
-              referrerPolicy="no-referrer"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
-            />
+            <KiddiesTownLogo className="w-12 h-12 rounded-full border border-indigo-200/50 shadow-xs" />
             <div>
               <h1 className="text-2xl font-black text-indigo-950 tracking-tight font-sans">
                 KIDDIES TOWN

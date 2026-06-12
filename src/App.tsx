@@ -18,6 +18,8 @@ import ParentDashboard from './components/ParentDashboard';
 import AdminDashboard from './components/AdminDashboard';
 import TeacherDashboard from './components/TeacherDashboard';
 import EnrolmentWizard from './components/EnrolmentWizard';
+import KiddiesTownLogo from './components/KiddiesTownLogo';
+import LandingPage from './components/LandingPage';
 
 export default function App() {
   // PERSISTED DATA STATES
@@ -80,8 +82,8 @@ export default function App() {
     }
   };
 
-  // VIEW PERSPECTIVES SELECTOR: parent | admin | teacher | enrolment
-  const [roleMode, setRoleMode] = useState<'parent' | 'admin' | 'teacher' | 'enrolment'>('parent');
+  // VIEW PERSPECTIVES SELECTOR: landing | parent | admin | teacher | enrolment
+  const [roleMode, setRoleMode] = useState<'landing' | 'parent' | 'admin' | 'teacher' | 'enrolment'>('landing');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Trigger notice modal simulator
@@ -242,6 +244,8 @@ export default function App() {
   const getRoleColors = (id: string, active: boolean) => {
     if (!active) return 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 pl-3 border-l-4 border-transparent';
     switch (id) {
+      case 'landing':
+        return 'bg-violet-50/80 text-violet-700 font-bold pl-3 border-l-4 border-violet-500';
       case 'parent':
         return 'bg-indigo-50/80 text-indigo-700 font-bold pl-3 border-l-4 border-indigo-500';
       case 'admin':
@@ -264,23 +268,7 @@ export default function App() {
             {/* Logo element with real logo from Facebook first page link */}
             <div className="flex items-center gap-3 mb-10">
               <div className="relative shrink-0 flex items-center">
-                <img 
-                  src="https://graph.facebook.com/100084221528687/picture?type=large" 
-                  alt="Kiddies Town Logo" 
-                  className="w-10 h-10 rounded-full object-cover border-2 border-indigo-100 shadow-xs"
-                  referrerPolicy="no-referrer"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                    const fallback = document.getElementById('sidebar-brand-balloons');
-                    if (fallback) fallback.classList.remove('hidden');
-                  }}
-                />
-                <div id="sidebar-brand-balloons" className="hidden -space-x-1 shrink-0 flex items-center">
-                  <span className="w-3.5 h-3.5 rounded-full bg-red-500 border border-white shadow-xs" />
-                  <span className="w-3.5 h-3.5 rounded-full bg-amber-400 border border-white shadow-xs" />
-                  <span className="w-3.5 h-3.5 rounded-full bg-indigo-500 border border-white shadow-xs" />
-                  <span className="w-3.5 h-3.5 rounded-full bg-emerald-500 border border-white shadow-xs" />
-                </div>
+                <KiddiesTownLogo className="w-10 h-10 border-2 border-indigo-100 shadow-xs rounded-full" />
               </div>
               <div>
                 <span className="text-base font-black tracking-tight text-indigo-950 block leading-none">KIDDIES TOWN</span>
@@ -299,6 +287,7 @@ export default function App() {
             <div className="space-y-1.5">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-3">Workspace Roles</p>
               {[
+                { id: 'landing', label: '🌟 School Home Page', desc: 'Public Portal', text: 'Browse programs, admission FAQs' },
                 { id: 'parent', label: '🏠 Parent Workspace', desc: 'Sarah Mbeki', text: 'View reports, pay, chat' },
                 { id: 'admin', label: '💼 Admin Portal', desc: 'Shineon M.', text: 'Arrears logs, calendar' },
                 { id: 'teacher', label: '👩‍🏫 Teacher Hub', desc: 'Teacher Anne', text: 'Mark Roster, set themes' },
@@ -381,23 +370,7 @@ export default function App() {
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-3">
                     <div className="relative shrink-0 flex items-center">
-                      <img 
-                        src="https://graph.facebook.com/100084221528687/picture?type=large" 
-                        alt="Kiddies Town Logo" 
-                        className="w-8 h-8 rounded-full object-cover border border-slate-200 shadow-xs"
-                        referrerPolicy="no-referrer"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                          const fallback = document.getElementById('mobile-brand-balloons');
-                          if (fallback) fallback.classList.remove('hidden');
-                        }}
-                      />
-                      <div id="mobile-brand-balloons" className="hidden -space-x-1 shrink-0 flex items-center">
-                        <span className="w-3 rounded-full bg-red-500 border border-white shadow-xs" />
-                        <span className="w-3 rounded-full bg-amber-400 border border-white shadow-xs" />
-                        <span className="w-3 rounded-full bg-indigo-500 border border-white shadow-xs" />
-                        <span className="w-3 rounded-full bg-emerald-500 border border-white shadow-xs" />
-                      </div>
+                      <KiddiesTownLogo className="w-8 h-8 border border-slate-200 shadow-xs rounded-full" />
                     </div>
                     <div>
                       <span className="text-sm font-black tracking-tight text-indigo-950 block leading-tight">KIDDIES TOWN</span>
@@ -419,6 +392,7 @@ export default function App() {
                 <div className="space-y-1.5">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-2">Workspace Roles</p>
                   {[
+                    { id: 'landing', label: '🌟 School Home Page', desc: 'Public Portal' },
                     { id: 'parent', label: '🏠 Parent Workspace', desc: 'Sarah Mbeki' },
                     { id: 'admin', label: '💼 Admin Portal', desc: 'Shineon M.' },
                     { id: 'teacher', label: '👩‍🏫 Teacher Workspace', desc: 'Teacher Anne' },
@@ -493,24 +467,18 @@ export default function App() {
             </button>
             
             {/* Kiddies Town Logo Image in the Header Navigation */}
-            <img 
-              src="https://graph.facebook.com/100084221528687/picture?type=large" 
-              alt="Kiddies Town Logo" 
-              className="w-9 h-9 rounded-full object-cover border border-indigo-200 shadow-xs block shrink-0"
-              referrerPolicy="no-referrer"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
-            />
+            <KiddiesTownLogo className="w-9 h-9 border border-indigo-200 shadow-xs rounded-full" />
             
             <div className="flex flex-col">
               <h1 className="text-sm font-bold text-slate-900 md:text-base tracking-tight leading-none uppercase">
+                {roleMode === 'landing' && 'School Landing Page & Program Showcase'}
                 {roleMode === 'parent' && 'Parent Workspace Roster'}
                 {roleMode === 'admin' && 'Compliance Administration Portal'}
                 {roleMode === 'teacher' && 'Teacher Progress Tracker'}
                 {roleMode === 'enrolment' && 'Admissions Application Portal'}
               </h1>
               <p className="text-[10px] text-slate-400 font-semibold font-mono mt-1 hidden md:block">
+                {roleMode === 'landing' && 'Kiddies Town ECD & Academy • Ster Park Campus'}
                 {roleMode === 'parent' && 'Sarah M. linked to Leo Mbeki'}
                 {roleMode === 'admin' && 'Kiddies Town Board Audit Controls'}
                 {roleMode === 'teacher' && 'Class: Tigers (Age Group 4-5 Years Old)'}
@@ -583,6 +551,14 @@ export default function App() {
                   Log Week 25 Theme
                 </button>
               )}
+              {roleMode === 'landing' && (
+                <button 
+                  onClick={() => setRoleMode('enrolment')}
+                  className="bg-rose-500 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-rose-600 transition-colors shadow-xs cursor-pointer"
+                >
+                  Apply Online
+                </button>
+              )}
               {roleMode === 'enrolment' && (
                 <button 
                   onClick={() => setRoleMode('parent')}
@@ -605,6 +581,10 @@ export default function App() {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
             >
+              {roleMode === 'landing' && (
+                <LandingPage onSelectRole={(role) => setRoleMode(role)} />
+              )}
+
               {roleMode === 'parent' && (
                 <ParentDashboard
                   learner={activeStudent}
