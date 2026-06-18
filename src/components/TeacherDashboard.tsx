@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Check, Calendar as CalIcon, MessageSquare, BookOpen, Clock, Activity, FileText,
@@ -15,7 +15,7 @@ interface TeacherDashboardProps {
   onUpdateMilestones: (studentId: string, milestones: { label: string; val: number }[]) => void;
   onSaveReport: (report: ProgressReport) => void;
   onAddTheme: (theme: WeeklyTheme) => void;
-  onSendMessage: (txt: string) => void;
+  onSendMessage: (txt: string, parentEmailAddress?: string) => void;
 }
 
 export default function TeacherDashboard({
@@ -74,6 +74,27 @@ export default function TeacherDashboard({
 
   // Chat Editor state
   const [chatInput, setChatInput] = useState('');
+  const [selectedParentEmail, setSelectedParentEmail] = useState<string>('parent@kiddiestown.co.za');
+
+  // Find all unique parents who have messages in active memory
+  const parentThreads = useMemo(() => {
+    const map = new Map<string, string>(); // email -> name
+    chats.forEach(c => {
+      if (c.parentEmail) {
+        if (c.sender === 'Parent') {
+          map.set(c.parentEmail, c.senderName);
+        } else if (!map.has(c.parentEmail)) {
+          const fallbackName = c.senderName.replace('Teacher Anne', 'Parent');
+          map.set(c.parentEmail, fallbackName.includes('Parent') ? fallbackName : `Family ${c.parentEmail.split('@')[0]}`);
+        }
+      }
+    });
+    // Ensure default Sarah Mbeki exists
+    if (!map.has('parent@kiddiestown.co.za')) {
+      map.set('parent@kiddiestown.co.za', 'Sarah Mbeki');
+    }
+    return Array.from(map.entries()).map(([email, name]) => ({ email, name }));
+  }, [chats]);
 
   // Filtering students based on selected class
   const classStudents = learners.filter(l => l.classType === selectedClass);
@@ -167,7 +188,7 @@ export default function TeacherDashboard({
   const handleSendChatText = (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatInput.trim()) return;
-    onSendMessage(chatInput);
+    onSendMessage(chatInput, selectedParentEmail);
     setChatInput('');
   };
 
@@ -602,35 +623,60 @@ export default function TeacherDashboard({
           {/* TAB 5: PARENT CHAT WINDOW */}
           {activeTab === 'chat' && (
             <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-xs max-w-2xl mx-auto flex flex-col justify-between min-h-[400px]">
-              <div className="flex justify-between items-center mb-4 border-b border-indigo-50 pb-3">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 border-b border-indigo-50 pb-4">
                 <div>
                   <h3 className="font-extrabold text-slate-800 text-sm">Instant Messaging Feed</h3>
-                  <p className="text-[11px] text-slate-400 font-semibold">Live direct messages with: Parent Sarah Mbeki</p>
+                  <p className="text-[11px] text-slate-400 font-semibold mt-0.5">
+                    Viewing correspondence with: <strong className="text-indigo-600">{parentThreads.find(t => t.email === selectedParentEmail)?.name || 'Parent'}</strong>
+                  </p>
+                </div>
+                
+                {/* Parent thread select dropdown */}
+                <div className="flex items-center gap-1.5 self-end">
+                  <span className="text-[10px] uppercase font-mono font-bold text-slate-400">Thread:</span>
+                  <select
+                    value={selectedParentEmail}
+                    onChange={(e) => setSelectedParentEmail(e.target.value)}
+                    className="border border-slate-200 bg-slate-50 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-700 outline-hidden"
+                  >
+                    {parentThreads.map(t => (
+                      <option key={t.email} value={t.email}>
+                        {t.name} ({t.email})
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
               {/* Chat threads */}
               <div className="space-y-4 my-3 h-56 overflow-y-auto pr-1">
-                {chats.map((msg) => {
-                  const isMe = msg.sender === 'Teacher';
-                  return (
-                    <div
-                      key={msg.id}
-                      className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
-                    >
-                      <span className="text-[10px] font-bold text-slate-400 px-1 mb-0.5">
-                        {msg.senderName} • {msg.timestamp}
-                      </span>
-                      <div className={`p-3 rounded-2xl text-xs max-w-[85%] leading-relaxed ${
-                        isMe
-                          ? 'bg-indigo-600 text-white rounded-tr-none'
-                          : 'bg-slate-100 text-slate-800 rounded-tl-none'
-                      }`}>
-                        {msg.text}
+                {chats
+                  .filter(msg => msg.parentEmail === selectedParentEmail)
+                  .map((msg) => {
+                    const isMe = msg.sender === 'Teacher';
+                    return (
+                      <div
+                        key={msg.id}
+                        className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
+                      >
+                        <span className="text-[10px] font-bold text-slate-400 px-1 mb-0.5">
+                          {msg.senderName} • {msg.timestamp}
+                        </span>
+                        <div className={`p-3 rounded-2xl text-xs max-w-[85%] leading-relaxed ${
+                          isMe
+                            ? 'bg-indigo-600 text-white rounded-tr-none'
+                            : 'bg-slate-100 text-slate-800 rounded-tl-none'
+                        }`}>
+                          {msg.text}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                {chats.filter(msg => msg.parentEmail === selectedParentEmail).length === 0 && (
+                  <p className="text-[11px] text-slate-400 text-center font-semibold my-8">
+                    No active messages in this folder yet.
+                  </p>
+                )}
               </div>
 
               <form onSubmit={handleSendChatText} className="flex gap-2 border-t pt-4">
@@ -638,7 +684,7 @@ export default function TeacherDashboard({
                   type="text"
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
-                  placeholder="Reply direct to Mrs. Sarah Mbeki..."
+                  placeholder={`Reply direct to ${parentThreads.find(t => t.email === selectedParentEmail)?.name || 'Parent'}...`}
                   className="flex-1 bg-slate-50 border px-3.5 py-2 rounded-xl text-xs text-slate-800 focus:outline-hidden"
                   required
                 />

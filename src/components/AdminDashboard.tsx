@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Users, DollarSign, Calendar as CalIcon, Truck, Plus, Mail, Check, Trash,
-  ChevronDown, Search, Filter, AlertCircle, FileText, CheckCircle2, UserCheck, Trash2
+  ChevronDown, Search, Filter, AlertCircle, FileText, CheckCircle2, UserCheck, Trash2,
+  RefreshCw, Database
 } from 'lucide-react';
 import { Learner, EnrolmentApplication, SchoolEvent, PaymentItem } from '../types';
 
@@ -14,6 +15,7 @@ interface AdminDashboardProps {
   onAddEvent: (event: SchoolEvent) => void;
   onApproveEnrolment: (enrolId: string) => void;
   onSendNotice: (parentName: string, amount: number) => void;
+  onResetDb?: () => Promise<void>;
 }
 
 export default function AdminDashboard({
@@ -23,10 +25,37 @@ export default function AdminDashboard({
   payments,
   onAddEvent,
   onApproveEnrolment,
-  onSendNotice
+  onSendNotice,
+  onResetDb
 }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'enrolments' | 'calendar' | 'transport'>('overview');
   
+  // Database reset & sync states
+  const [resetting, setResetting] = useState(false);
+  const [resetMessage, setResetMessage] = useState<string | null>(null);
+
+  const handleResetDatabase = async () => {
+    setResetting(true);
+    setResetMessage(null);
+    try {
+      const res = await fetch('/api/admin/reset-db', { method: 'POST' });
+      const result = await res.json();
+      if (res.ok) {
+        setResetMessage("Success: Database reset & synchronized!");
+        if (onResetDb) {
+          await onResetDb();
+        }
+      } else {
+        setResetMessage(`Error: ${result.error || 'Failed to sync'}`);
+      }
+    } catch (err: any) {
+      setResetMessage("Error: Connection lost");
+    } finally {
+      setResetting(false);
+      setTimeout(() => setResetMessage(null), 5000);
+    }
+  };
+
   // Notice triggers State
   const [notifiedParents, setNotifiedParents] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -216,6 +245,24 @@ export default function AdminDashboard({
 
                   <div className="text-[10px] leading-relaxed text-indigo-400 font-mono">
                     System Assigned Portal IP: 0.0.0.0 • Role: Chief Administrator (Shineon M.)
+                  </div>
+
+                  <div className="mt-4 pt-4 border-t border-indigo-900/50 flex flex-col gap-2">
+                    <p className="text-[10.5px] text-indigo-300 font-bold uppercase tracking-wider">Database & Media Management</p>
+                    <button
+                      type="button"
+                      onClick={handleResetDatabase}
+                      disabled={resetting}
+                      className="w-full flex items-center justify-center gap-1.5 bg-indigo-650 hover:bg-orange-500 disabled:bg-indigo-800 text-white font-extrabold text-[10px] uppercase py-2.5 px-3 rounded-lg shadow-sm border border-indigo-500/30 transition-all cursor-pointer select-none"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${resetting ? 'animate-spin' : ''}`} />
+                      {resetting ? 'Synchronizing Media...' : 'Sync & Reset DB to Latest Photos'}
+                    </button>
+                    {resetMessage && (
+                      <p className="text-[10px] text-amber-300 font-bold mt-1 text-center font-mono">
+                        {resetMessage}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>

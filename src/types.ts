@@ -16,6 +16,7 @@ export interface Learner {
   classType: ClassType;
   attendanceStatus: 'Present' | 'Absent' | 'Excused' | 'Pending';
   arrivedTime?: string;
+  parentEmail?: string;
 }
 
 export interface ParentProfile {
@@ -165,6 +166,8 @@ export interface PaymentItem {
   amount: number;
   status: 'Paid' | 'Unpaid' | 'In Arrears' | 'Pending Verification';
   receiptNo?: string;
+  parentEmail?: string;
+  learnerId?: string;
 }
 
 export interface ChatMessage {
@@ -173,6 +176,7 @@ export interface ChatMessage {
   senderName: string;
   text: string;
   timestamp: string;
+  parentEmail?: string;
 }
 
 export interface WeeklyTheme {

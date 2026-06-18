@@ -8,9 +8,10 @@ import { Learner, ParentProfile, MedicalProfile, TransportDetails, Consents, Enr
 
 interface EnrolmentWizardProps {
   onComplete: (app: EnrolmentApplication) => void;
+  parentProfile?: ParentProfile;
 }
 
-export default function EnrolmentWizard({ onComplete }: EnrolmentWizardProps) {
+export default function EnrolmentWizard({ onComplete, parentProfile }: EnrolmentWizardProps) {
   const [step, setStep] = useState(1);
 
   // Success screen state
@@ -70,6 +71,33 @@ export default function EnrolmentWizard({ onComplete }: EnrolmentWizardProps) {
   const [fEmail, setFEmail] = useState('');
 
   const [address, setAddress] = useState('');
+
+  // Prefill Parent Profile details from logged-in session info
+  useEffect(() => {
+    if (parentProfile) {
+      if (parentProfile.maritalStatus) setMaritalStatus(parentProfile.maritalStatus);
+      if (parentProfile.childLivesWith) setChildLivesWith(parentProfile.childLivesWith);
+      if (parentProfile.address) setAddress(parentProfile.address);
+      
+      if (parentProfile.mother) {
+        if (parentProfile.mother.firstNames) setMName(parentProfile.mother.firstNames);
+        if (parentProfile.mother.surname) setMSurname(parentProfile.mother.surname);
+        if (parentProfile.mother.idNumber) setMId(parentProfile.mother.idNumber);
+        if (parentProfile.mother.cellNo) setMCell(parentProfile.mother.cellNo);
+        if (parentProfile.mother.email) setMEmail(parentProfile.mother.email);
+        if (parentProfile.mother.occupation) setMOcc(parentProfile.mother.occupation);
+        if (parentProfile.mother.employer) setMEmp(parentProfile.mother.employer);
+      }
+      
+      if (parentProfile.father) {
+        if (parentProfile.father.firstNames) setFName(parentProfile.father.firstNames);
+        if (parentProfile.father.surname) setFSurname(parentProfile.father.surname);
+        if (parentProfile.father.idNumber) setFId(parentProfile.father.idNumber);
+        if (parentProfile.father.cellNo) setFCell(parentProfile.father.cellNo);
+        if (parentProfile.father.email) setFEmail(parentProfile.father.email);
+      }
+    }
+  }, [parentProfile]);
 
   // Step 3: Medical profile
   const [familyDoc, setFamilyDoc] = useState('');

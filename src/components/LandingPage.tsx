@@ -5,6 +5,7 @@ import {
   Facebook, ArrowRight, ShieldAlert, GraduationCap, ChevronDown, Check, Info
 } from 'lucide-react';
 import KiddiesTownLogo from './KiddiesTownLogo';
+import FloatingBalloons from './FloatingBalloons';
 
 interface LandingPageProps {
   onSelectRole: (role: 'parent' | 'admin' | 'teacher' | 'enrolment') => void;
@@ -29,54 +30,54 @@ export default function LandingPage({ onSelectRole }: LandingPageProps) {
       id: 1,
       category: 'grad',
       title: 'Grade R Graduation Ceremony',
-      description: 'Our proud Grade R graduates (Tigers Class) wearing gowns and receiving certificates of level completion.',
-      longDesc: 'Each November, we host our beautiful annual Year-End Graduation Day. Our little graduates celebrate stepping confidently into primary school. Watch them receive their awards, sing class songs, and salute early milestones.',
-      image: 'https://images.unsplash.com/photo-1541250848049-b4f7141dca3f?w=800&auto=format&fit=crop&q=75',
+      description: 'Our proud Grade R graduates (Tigers Class) throwing caps in celebration of stepping into primary school.',
+      longDesc: 'Each November, we host our beautiful annual Year-End Graduation Ceremony. Our little graduates, wearing gowns and caps, stand tall to receive certificates of level completion. The event features parents-teacher assembly, kids choruses, and school milestone speeches.',
+      image: 'https://images.unsplash.com/photo-1627556704302-624286467c65?w=800&auto=format&fit=crop&q=75',
       link: 'https://www.facebook.com/people/Kiddies-Town-ECD/100084221528687/?sk=photos'
     },
     {
       id: 2,
       category: 'fun',
       title: 'Annual Ster Park Fun Walk & Picnic',
-      description: 'Strengthening community bonds with parents and children under a beautiful, colorful balloon arch.',
-      longDesc: 'The Kiddies Town 3km Fun Walk brings together over 150 parents, friends, and community sponsors for a scenic stroll in local Ster Park. Features include balloon structures, a face painting arena, and fresh morning fruit bowls.',
-      image: 'https://images.unsplash.com/photo-1536640712-4d4c36ff0e4e?w=800&auto=format&fit=crop&q=75',
+      description: 'Creating memorable bonds under sunny skies with our annual community-sponsored physical run.',
+      longDesc: 'The Kiddies Town 3km Fun Walk brings together over 150 parents, kids, and Polokwane community sponsors for a scenic morning stride in local Ster Park. Features include bright balloon arches, bouncy castles, face painting arenas, and parent picnic bags.',
+      image: 'https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=800&auto=format&fit=crop&q=75',
       link: 'https://www.facebook.com/people/Kiddies-Town-ECD/100084221528687/?sk=photos'
     },
     {
       id: 3,
       category: 'art',
-      title: 'Creative Art & Clay Finger Sciences',
-      description: 'Enriching motor coordination and sensory exploration in our young Roses & Giraffes toddlers.',
-      longDesc: 'Our dedicated early clay, sand play, and non-toxic paint workshops encourage child-guided tactile exploration. These interactive tasks support robust logic grids and pattern creation.',
-      image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&auto=format&fit=crop&q=75',
+      title: 'Creative Art & Finger Painting',
+      description: 'Enriching hand-eye motor coordination and sensory logic through colorful non-toxic canvas designs.',
+      longDesc: 'Our dedicated painting, sculpting, and tactile collage sessions allow child-guided organic exploration. These fun tasks support motor pathways, color theory recognition, and focus during early development cycles.',
+      image: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&auto=format&fit=crop&q=75',
       link: 'https://www.facebook.com/people/Kiddies-Town-ECD/100084221528687/?sk=photos'
     },
     {
       id: 4,
       category: 'play',
-      title: 'Safe Ster Park Outdoor Play Gyms',
-      description: 'Laughter, safe slides, and social interactive play under shaded, child-compliant play mats.',
-      longDesc: 'Kiddies Town provides state-of-the-art jungle gyms and soft underfoot rubberized turf. Continuous active adult oversight is guaranteed by Teacher Anne and our core ECD care teams.',
-      image: 'https://images.unsplash.com/photo-1596464716127-f2a82984de30?w=800&auto=format&fit=crop&q=75',
+      title: 'Accredited Safe Outdoor Play Gyms',
+      description: 'Strengthening spatial awareness on premium, age-compliant climbing gears and soft safety mats.',
+      longDesc: 'Kiddies Town features state-of-the-art wooden jungle gyms, custom child-friendly slides, and specialized soft rubber turf. Outdoor playtime is strictly governed under the watchful eyes of Teacher Anne and our core ECD care teams.',
+      image: 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?w=800&auto=format&fit=crop&q=75',
       link: 'https://www.facebook.com/people/Kiddies-Town-ECD/100084221528687/?sk=photos'
     },
     {
       id: 5,
       category: 'art',
-      title: 'Sensory Sandbox Archaeology',
-      description: 'Syllabus-aligned sandbox treasure hunting to develop focus and teamwork among classmates.',
-      longDesc: 'We introduce simple geology, geometry shapes, and mini-paleontology block matching in our sandbox arrays. It develops social collaboration and vocabulary skills.',
-      image: 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?w=800&auto=format&fit=crop&q=75',
+      title: 'Sensory Sandbox Archaeologists',
+      description: 'Syllabus-aligned sandbox group play to discover geometric shapes, dinosaur fossiles, and patterns.',
+      longDesc: 'Our sandbox activities merge geography, geometry shapes, and vocabulary. Kids work in team circles using wooden brushes and sifting grids, reinforcing early social communication and analytical skillsets.',
+      image: 'https://images.unsplash.com/photo-1505673542670-a5e3ff5b14a3?w=800&auto=format&fit=crop&q=75',
       link: 'https://www.facebook.com/people/Kiddies-Town-ECD/100084221528687/?sk=photos'
     },
     {
       id: 6,
       category: 'play',
-      title: 'Toddlers Musical Sing-Along',
-      description: 'Mastering phonetic structures and English vocabulary via xylophones and daily ring play circles.',
-      longDesc: 'Rhythm and vocal games form the foundation of language learning. Our toddlers develop acoustic memory, focus, and pitch coordination with miniature percussion toys.',
-      image: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&auto=format&fit=crop&q=75',
+      title: 'Toddlers Musical Rhythm Circles',
+      description: 'Phonetic building and vocabulary coordination through instruments, handclaps, and group songs.',
+      longDesc: 'Rhythm and sound patterns form the critical bedrock of early speech and language mastery. Our toddlers enjoy circle sing-alongs, xylophone taps, and acoustic matching cues to expand cognitive recall in a playful setting.',
+      image: 'https://images.unsplash.com/photo-1519751138087-5bf79df62d5b?w=800&auto=format&fit=crop&q=75',
       link: 'https://www.facebook.com/people/Kiddies-Town-ECD/100084221528687/?sk=photos'
     }
   ];
@@ -96,7 +97,7 @@ export default function LandingPage({ onSelectRole }: LandingPageProps) {
       focus: 'Fine motor skills, emotional anchoring, sensory play, language initiation',
       desc: 'Our Roses group provides an exceptionally warm, secure, and nurturing nest. We focus on child-led sensory development, safe crawling spaces, tactile objects, and cognitive sound associations.',
       activities: ['Tactile sand & water plays', 'Soft block construction', 'Daily read-aloud circles', 'Nursery rhyming exercises'],
-      image: 'https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=600&auto=format&fit=crop&q=65&ixlib=rb-4.0.3'
+      image: 'https://images.unsplash.com/photo-1596464716127-f2a82984de30?w=600&auto=format&fit=crop&q=65'
     },
     {
       id: 'giraffes',
@@ -108,7 +109,7 @@ export default function LandingPage({ onSelectRole }: LandingPageProps) {
       focus: 'Expressive speech, cooperative games, shape & color sorting, toilet independence',
       desc: 'The Giraffes class is tailored for rapid exploration and social play! Children enjoy creative finger painting, puzzle matching, and early physical coordination milestones in our dedicated play gyms.',
       activities: ['Shape-sorting puzzles', 'Fine arts finger-painting', 'Guided nature trails', 'Cooperative outdoor game cycles'],
-      image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&auto=format&fit=crop&q=65&ixlib=rb-4.0.3'
+      image: 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?w=600&auto=format&fit=crop&q=65'
     },
     {
       id: 'tigers',
@@ -120,7 +121,7 @@ export default function LandingPage({ onSelectRole }: LandingPageProps) {
       focus: 'Emergent numeracy, structured phonics, science sandbox exploration, social confidence',
       desc: 'The Tigers classroom guides our oldest learners seamlessly into primary school readiness. Following strict South African CAPS guidelines, learners develop early writing patterns, basic maths, and robust reasoning.',
       activities: ['Emergent phonics matching', 'Sandbox archaeology digs', 'Early math sorting cycles', 'Basic coding blocks & patterns'],
-      image: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600&auto=format&fit=crop&q=65&ixlib=rb-4.0.3'
+      image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&auto=format&fit=crop&q=65'
     }
   ];
 
@@ -181,7 +182,8 @@ export default function LandingPage({ onSelectRole }: LandingPageProps) {
       </div>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-white py-16 lg:py-24 border-b border-slate-200">
+      <section className="relative overflow-hidden bg-white py-16 lg:py-24 border-b border-slate-200 isolate">
+        <FloatingBalloons count={7} seed={1} />
         {/* Soft Background Gradients */}
         <div className="absolute inset-x-0 top-0 -z-10 h-96 bg-radial-gradient from-indigo-50/50 to-transparent pointer-events-none" />
         
@@ -316,7 +318,8 @@ export default function LandingPage({ onSelectRole }: LandingPageProps) {
       </section>
 
       {/* Play-Based Age Classes Area */}
-      <section className="py-16 lg:py-20 bg-slate-50 border-b border-slate-200" id="classes-group">
+      <section className="relative overflow-hidden py-16 lg:py-20 bg-slate-50 border-b border-slate-200 isolate" id="classes-group">
+        <FloatingBalloons count={6} seed={2} />
         <div className="max-w-6xl mx-auto px-6 md:px-8">
           <div className="text-center space-y-3 max-w-2xl mx-auto mb-12">
             <span className="text-rose-500 font-bold text-xs uppercase tracking-widest font-mono">Our Educational Framework</span>
@@ -406,7 +409,8 @@ export default function LandingPage({ onSelectRole }: LandingPageProps) {
       </section>
 
       {/* Features bento grid */}
-      <section className="py-16 lg:py-20 bg-white border-b border-slate-200">
+      <section className="relative overflow-hidden py-16 lg:py-20 bg-white border-b border-slate-200 isolate">
+        <FloatingBalloons count={5} seed={3} />
         <div className="max-w-6xl mx-auto px-6 md:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center mb-12">
             <div className="lg:col-span-6 space-y-3">
@@ -435,90 +439,90 @@ export default function LandingPage({ onSelectRole }: LandingPageProps) {
           {/* Bento grid layout */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6">
             {/* Box 1: Shuttle */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 lg:col-span-5 flex flex-col justify-between">
+            <div className="bg-white border border-slate-150 rounded-2xl p-6 lg:col-span-12 xl:col-span-5 flex flex-col justify-between premium-shadow premium-card-hover">
               <div className="space-y-4">
-                <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-bold border border-orange-100">
                   🚍
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-indigo-950">Accredited Shuttle Transport</h3>
-                  <p className="text-slate-500 text-xs leading-relaxed mt-1">
+                  <h3 className="text-base font-extrabold text-indigo-950">Accredited Shuttle Transport</h3>
+                  <p className="text-slate-505 text-xs leading-relaxed mt-1.5">
                     Daily pick-up scheduled directly across Polokwane CBD and Ster Park. Keeps commuters secure, safe, and synchronized.
                   </p>
                 </div>
               </div>
-              <div className="pt-4 mt-4 border-t border-slate-200/50 flex items-center justify-between text-[11px] font-mono text-slate-400 font-bold uppercase tracking-wider">
+              <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-[11px] font-mono text-slate-450 font-bold uppercase tracking-wider">
                 <span>Ster Park • CBD Hub</span>
-                <span>Arranged pickup</span>
+                <span className="text-orange-600">Arranged pickup</span>
               </div>
             </div>
 
             {/* Box 2: Reports */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 lg:col-span-7 flex flex-col justify-between">
+            <div className="bg-white border border-slate-150 rounded-2xl p-6 lg:col-span-12 xl:col-span-7 flex flex-col justify-between premium-shadow premium-card-hover">
               <div className="space-y-4">
-                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold border border-emerald-100">
                   📊
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <h3 className="text-base font-bold text-indigo-950">Dynamic Progress Reports</h3>
-                    <p className="text-slate-500 text-xs leading-relaxed mt-1">
+                    <h3 className="text-base font-extrabold text-indigo-950">Dynamic Progress Reports</h3>
+                    <p className="text-slate-505 text-xs leading-relaxed mt-1.5">
                       Our teachers update social development, vocabulary, fine motor milestones, and creative arts scores each term.
                     </p>
                   </div>
-                  <div className="bg-white border border-slate-200 p-3 rounded-xl space-y-2">
-                    <div className="flex justify-between items-center text-[10px] font-bold text-slate-400">
+                  <div className="bg-slate-50/50 border border-slate-150 p-3 rounded-xl space-y-2">
+                    <div className="flex justify-between items-center text-[10px] font-bold text-slate-450">
                       <span>FINE MOTOR SCORING</span>
-                      <span className="text-emerald-600">92%</span>
+                      <span className="text-emerald-600 font-extrabold">92%</span>
                     </div>
-                    <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                    <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
                       <div className="bg-emerald-500 h-full rounded-full" style={{ width: '92%' }} />
                     </div>
-                    <p className="text-[9px] text-slate-400 italic">"Excellent finger paint coordination (Leo Mbeki)."</p>
+                    <p className="text-[9px] text-slate-505 italic leading-normal">"Excellent finger paint coordination (Leo Mbeki)."</p>
                   </div>
                 </div>
               </div>
-              <div className="pt-4 mt-4 border-t border-slate-200/50 flex items-center justify-between text-[11px] font-mono text-slate-400 font-bold uppercase tracking-wider">
+              <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-[11px] font-mono text-slate-450 font-bold uppercase tracking-wider">
                 <span>PDF Downloadable & Printable</span>
-                <span>Milestone Audited</span>
+                <span className="text-emerald-600">Milestone Audited</span>
               </div>
             </div>
 
             {/* Box 3: POPI Compliance */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 lg:col-span-7 flex flex-col justify-between">
+            <div className="bg-white border border-slate-150 rounded-2xl p-6 lg:col-span-12 xl:col-span-7 flex flex-col justify-between premium-shadow premium-card-hover">
               <div className="space-y-4">
-                <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold border border-indigo-100">
                   🔒
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-indigo-950">Strict South African POPI Act Compliance</h3>
-                  <p className="text-slate-500 text-xs leading-relaxed mt-1">
+                  <h3 className="text-base font-extrabold text-indigo-950">Strict South African POPI Act Compliance</h3>
+                  <p className="text-slate-505 text-xs leading-relaxed mt-1.5">
                     Your family data, birth certificates, medical records, and digital statements are protected with state-of-the-art secure database protocols. We do not expose children's photos or personal directories to indices or non-authenticated guests.
                   </p>
                 </div>
               </div>
-              <div className="pt-4 mt-4 border-t border-slate-200/50 flex items-center justify-between text-[11px] font-mono text-slate-400 font-bold uppercase tracking-wider">
+              <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-[11px] font-mono text-slate-450 font-bold uppercase tracking-wider">
                 <span>RSA POPIA compliant</span>
-                <span>Active Shield Protected</span>
+                <span className="text-indigo-600">Active Shield Protected</span>
               </div>
             </div>
 
             {/* Box 4: Financial Statement */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 lg:col-span-5 flex flex-col justify-between">
+            <div className="bg-white border border-slate-150 rounded-2xl p-6 lg:col-span-12 xl:col-span-5 flex flex-col justify-between premium-shadow premium-card-hover">
               <div className="space-y-4">
-                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold border border-amber-100">
                   R
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-indigo-950">Account Statements & Real-time receipts</h3>
-                  <p className="text-slate-500 text-xs leading-relaxed mt-1">
+                  <h3 className="text-base font-extrabold text-indigo-950">Account Statements & Real-time receipts</h3>
+                  <p className="text-slate-505 text-xs leading-relaxed mt-1.5">
                     Instantly monitor school fee arrears, log manual banking transfers, download valid educational receipts, and receive immediate principal notifications.
                   </p>
                 </div>
               </div>
-              <div className="pt-4 mt-4 border-t border-slate-200/50 flex items-center justify-between text-[11px] font-mono text-slate-400 font-bold uppercase tracking-wider">
+              <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-[11px] font-mono text-slate-450 font-bold uppercase tracking-wider">
                 <span>Transparent billing</span>
-                <span>Offline Buffers</span>
+                <span className="text-amber-600">Offline Buffers</span>
               </div>
             </div>
           </div>
@@ -526,7 +530,8 @@ export default function LandingPage({ onSelectRole }: LandingPageProps) {
       </section>
 
       {/* Interactive Photo Gallery & Highlights */}
-      <section className="py-16 lg:py-20 bg-slate-100 border-b border-slate-200">
+      <section className="relative overflow-hidden py-16 lg:py-20 bg-slate-100 border-b border-slate-200 isolate">
+        <FloatingBalloons count={7} seed={4} />
         <div className="max-w-6xl mx-auto px-6 md:px-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 mb-10 text-left">
             <div className="space-y-3">
@@ -704,7 +709,8 @@ export default function LandingPage({ onSelectRole }: LandingPageProps) {
       </section>
 
       {/* Testimonials */}
-      <section className="py-16 lg:py-20 bg-slate-50 border-b border-slate-200">
+      <section className="relative overflow-hidden py-16 lg:py-20 bg-slate-50 border-b border-slate-200 isolate">
+        <FloatingBalloons count={6} seed={5} />
         <div className="max-w-6xl mx-auto px-6 md:px-8">
           <div className="text-center space-y-3 max-w-2xl mx-auto mb-12">
             <span className="text-indigo-600 font-bold text-xs uppercase tracking-widest font-mono">Parent Reviews</span>
@@ -761,7 +767,8 @@ export default function LandingPage({ onSelectRole }: LandingPageProps) {
       </section>
 
       {/* Frequently Asked Questions */}
-      <section className="py-16 lg:py-20 bg-white border-b border-slate-200">
+      <section className="relative overflow-hidden py-16 lg:py-20 bg-white border-b border-slate-200 isolate">
+        <FloatingBalloons count={5} seed={6} />
         <div className="max-w-4xl mx-auto px-6 md:px-8">
           <div className="text-center space-y-3 mb-12">
             <span className="text-amber-500 font-bold text-xs uppercase tracking-widest font-mono">Answers At Hand</span>
@@ -799,7 +806,8 @@ export default function LandingPage({ onSelectRole }: LandingPageProps) {
       </section>
 
       {/* Call to Action Section */}
-      <section className="py-16 lg:py-20 bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 text-white relative">
+      <section className="relative overflow-hidden py-16 lg:py-20 bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 text-white isolate">
+        <FloatingBalloons count={8} seed={7} />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(99,102,241,0.15),transparent)] pointer-events-none" />
         <div className="max-w-4xl mx-auto px-6 md:px-8 text-center space-y-8 relative z-10">
           <div className="inline-flex items-center gap-2 p-1.5 px-3 rounded-full bg-white/10 backdrop-blur-xs border border-white/20 text-indigo-100 text-xs font-mono font-semibold uppercase tracking-wider">

@@ -4,13 +4,13 @@ import {
   AlertTriangle, Calendar as CalIcon, MessageSquare, BookOpen, CreditCard, 
   User, Plus, FileText, Send, ChevronRight, Activity, Clock, ShieldAlert,
   Download, Sparkles, Check, HelpCircle, Upload, Heart, Landmark, CheckCircle2,
-  Facebook
+  Facebook, ChevronDown, ChevronUp, Lightbulb, Info
 } from 'lucide-react';
 import { Learner, ParentProfile, ProgressReport, PaymentItem, ChatMessage, SchoolEvent, JournalPost, WeeklyTheme } from '../types';
 import ProgressReportView from './ProgressReportView';
 
 interface ParentDashboardProps {
-  learner: Learner;
+  learner?: Learner;
   profile: ParentProfile;
   reports: ProgressReport[];
   payments: PaymentItem[];
@@ -21,6 +21,7 @@ interface ParentDashboardProps {
   onAddMessage: (msg: string) => void;
   onRsvpEvent: (eventId: string, status: 'Yes' | 'No' | 'Maybe') => void;
   onAddPayment: (item: PaymentItem) => void;
+  onApplyOnline?: () => void;
 }
 
 export default function ParentDashboard({
@@ -34,13 +35,15 @@ export default function ParentDashboard({
   themes,
   onAddMessage,
   onRsvpEvent,
-  onAddPayment
+  onAddPayment,
+  onApplyOnline
 }: ParentDashboardProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'reports' | 'calendar' | 'journal' | 'finance' | 'profile'>('overview');
   const [selectedReport, setSelectedReport] = useState<ProgressReport | null>(null);
   const [messageText, setMessageText] = useState('');
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [rsvpStatus, setRsvpStatus] = useState<'Yes' | 'No' | 'Maybe'>('Yes');
+  const [selectedMilestone, setSelectedMilestone] = useState<string | null>(null);
   
   // Custom manual payment logger states
   const [payDescription, setPayDescription] = useState('Monthly Fees / October Aftercare');
@@ -82,13 +85,168 @@ export default function ParentDashboard({
     }, 4000);
   };
 
-  // Precalculated Milestones to display based on Term 3 report or general indicators
-  const milestoneCategories = [
-    { label: 'Social & Emotional', val: 95, status: 'Exceptional', color: 'bg-emerald-500', bg: 'bg-emerald-50 text-emerald-700' },
-    { label: 'Numeracy (D1)', val: 82, status: 'On Track', color: 'bg-indigo-500', bg: 'bg-indigo-50 text-indigo-700' },
-    { label: 'Fine Motor Skills (H)', val: 88, status: 'On Track', color: 'bg-sky-500', bg: 'bg-sky-50 text-sky-700' },
-    { label: 'Language / Literacy (C1)', val: 56, status: 'Progressing', color: 'bg-amber-500', bg: 'bg-amber-50 text-amber-700' }
-  ];
+  // Find matching reports for the active learner to calculate real milestones
+  const activeReport = learner && reports.length > 0 
+    ? (reports.find(r => r.learnerId === learner.id) || reports[0]) 
+    : undefined;
+
+  const getScoreValue = (grade: string | undefined): number => {
+    if (!grade) return 75; // fallback default
+    switch (grade.toUpperCase()) {
+      case 'A': return 100;
+      case 'D': return 75;
+      case 'E': return 50;
+      case 'N/O': return 25;
+      case 'N/A': return 75;
+      default: return 75;
+    }
+  };
+
+  const getDynamicMilestones = () => {
+    if (!activeReport || !activeReport.indicators) {
+      return [
+        {
+          id: 'social',
+          label: 'Social & Emotional Engagement',
+          val: 92,
+          status: 'Outstanding',
+          color: 'bg-emerald-500',
+          bg: 'bg-emerald-50 text-emerald-700',
+          details: 'Focuses on self-regulation, cooperative classroom group play, toilet learning, and following sequence directions.',
+          recommendation: 'Encourage turn-taking and emotional description. Tip: Try setting the dinner table together and practice identifying different feelings using storybooks!'
+        },
+        {
+          id: 'math',
+          label: 'Cognitive & Numeracy Coordination',
+          val: 80,
+          status: 'On Track',
+          color: 'bg-indigo-500',
+          bg: 'bg-indigo-50 text-indigo-700',
+          details: 'Covers physical counting using physical items, shape identification, basic arithmetic logic, and matching colors.',
+          recommendation: 'Play shape-hunt around the house! Tip: Let your learner count pieces of fruit or sort colored laundry to build real-world classification logic!'
+        },
+        {
+          id: 'motor',
+          label: 'Fine & Physical Motor Development',
+          val: 85,
+          status: 'On Track',
+          color: 'bg-sky-500',
+          bg: 'bg-sky-50 text-sky-700',
+          details: 'Encompasses steady writing grip, scissor safety, block building, clothes buttoning, alongside skipping and balancing.',
+          recommendation: 'Build fine motor control. Tip: Practice cutting scrap newspaper with safety scissors or thread large dry pasta onto yarn to master hand-eye grasp!'
+        },
+        {
+          id: 'literacy',
+          label: 'Language & Literacy Foundation',
+          val: 68,
+          status: 'Developing',
+          color: 'bg-amber-500',
+          bg: 'bg-amber-50 text-amber-700',
+          details: 'Dials in clear spoken expression, vocabulary expansion, early alphabet recognition, and sound-to-letter matching phonetics.',
+          recommendation: 'Read aloud together daily. Tip: Trace letters in a tray of clean dry sand or point out letter sounds on product packages at the local supermarket!'
+        }
+      ];
+    }
+
+    const inds = activeReport.indicators;
+
+    // 1. Social Score (cooperative play, control, bathroom independence, approaches to learning)
+    const socialGrades = [
+      inds.socialEmotionalSkills?.F1_sharesAndPlays,
+      inds.classroomBehavior?.A1_controlAndSafe,
+      inds.classroomBehavior?.A2_bathroomIndependent,
+      inds.approachesToLearn?.I1_enjoysLearning
+    ].filter(Boolean);
+    const socialAvg = Math.round(socialGrades.reduce((sum, g) => sum + getScoreValue(g), 0) / (socialGrades.length || 1));
+
+    // 2. Math/Cognitive (numbers, shapes/sizes)
+    const mathGrades = [
+      inds.numbersMathArithmetic?.D1_countsRecognizes,
+      inds.coloursAndShapes?.G1_colorsShapes
+    ].filter(Boolean);
+    const mathAvg = Math.round(mathGrades.reduce((sum, g) => sum + getScoreValue(g), 0) / (mathGrades.length || 1));
+
+    // 3. Motor (crayon grip, blocks, bouncing/throwing, shoe lacing/buttons)
+    const motorGrades = [
+      inds.fineMotorSkills?.H1_pencilCrayonScissors,
+      inds.fineMotorSkills?.H2_blocksPuzzles,
+      inds.fineMotorSkills?.H3_bounceKickThrow,
+      inds.fineMotorSkills?.H4_buttonsShoesClothes
+    ].filter(Boolean);
+    const motorAvg = Math.round(motorGrades.reduce((sum, g) => sum + getScoreValue(g), 0) / (motorGrades.length || 1));
+
+    // 4. Literacy (speaks clearly, alphabet recognition)
+    const litGrades = [
+      inds.communicationSkills?.B1_speaksClearly,
+      inds.readingWritingSkills?.C1_recognizesLetters
+    ].filter(Boolean);
+    const litAvg = Math.round(litGrades.reduce((sum, g) => sum + getScoreValue(g), 0) / (litGrades.length || 1));
+
+    const getStatusStr = (v: number) => {
+      if (v >= 90) return { label: 'Outstanding', color: 'bg-emerald-500', bg: 'bg-emerald-50 text-emerald-700 border-emerald-100' };
+      if (v >= 75) return { label: 'On Track', color: 'bg-indigo-500', bg: 'bg-indigo-50 text-indigo-700 border-indigo-100' };
+      if (v >= 50) return { label: 'Developing', color: 'bg-amber-500', bg: 'bg-amber-50 text-amber-700 border-amber-100' };
+      return { label: 'Needs Support', color: 'bg-rose-500', bg: 'bg-rose-50 text-rose-700 border-rose-100' };
+    };
+
+    const s1 = getStatusStr(socialAvg);
+    const s2 = getStatusStr(mathAvg);
+    const s3 = getStatusStr(motorAvg);
+    const s4 = getStatusStr(litAvg);
+
+    return [
+      {
+        id: 'social',
+        label: 'Social & Emotional Engagement',
+        val: socialAvg,
+        status: s1.label,
+        color: s1.color,
+        bg: s1.bg,
+        details: 'Self-regulation, cooperative classroom group play, toilet learning, and readiness to adapt to classroom sequences.',
+        recommendation: socialAvg >= 90 
+          ? 'Showcase Challenge: Have them practice leading. Allow your child to "teach" a favorite toy or sibling progress rules, modeling polite classroom speech!'
+          : 'Milestone Tip: Play daily role-play matching games (e.g. "school" or "shop") to build cooperative dialogue and practice taking polite group turns!'
+      },
+      {
+        id: 'math',
+        label: 'Cognitive & Numeracy Coordination',
+        val: mathAvg,
+        status: s2.label,
+        color: s2.color,
+        bg: s2.bg,
+        details: 'Identifying shapes/sizes, counting with objects, number recognition, and logical spatial reasoning.',
+        recommendation: mathAvg >= 90
+          ? 'Creative Maths: Introduce small pattern-building challenges using items of different shapes. Let them sort kitchen spoons into size categories!'
+          : 'Milestone Tip: Count physical steps when walking or count colorful vehicles on the driveway together, discussing colors and relative sizes.'
+      },
+      {
+        id: 'motor',
+        label: 'Fine & Physical Motor Development',
+        val: motorAvg,
+        status: motorAvg >= 90 ? 'Outstanding' : s3.label,
+        color: s3.color,
+        bg: s3.bg,
+        details: 'Writing tool grip (pencil/crayon), fine puzzle sorting, scissor safety, alongside gross motor leaps like hopping/ball catching.',
+        recommendation: motorAvg >= 90
+          ? 'Showcase Game: Try finger painting detailed patterns, clay play, lego assembly, or sorting dried corn kernels using kitchen thumb tweezers.'
+          : 'Milestone Tip: Practice buttoning old shirts or matching socks together; roll play-dough into snakes and pinch small balls to strengthen hands.'
+      },
+      {
+        id: 'literacy',
+        label: 'Language & Literacy Foundation',
+        val: litAvg,
+        status: s4.label,
+        color: s4.color,
+        bg: s4.bg,
+        details: 'Verbal communication vocabulary size, letter recognition, following spoken directions, and phonetic interest.',
+        recommendation: litAvg >= 90
+          ? 'Library Leap: Point to words as you read, let them guess what happens next in stories, and let them trace alphabet letters in salt trays!'
+          : 'Milestone Tip: Practice phone sounds. Let your child select items starting with sound /b/ (ball, box, book) around the bedroom floor.'
+      }
+    ];
+  };
+
+  const dynamicMilestones = getDynamicMilestones();
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 min-h-screen">
@@ -98,8 +256,10 @@ export default function ParentDashboard({
           <div className="hidden lg:block pb-3 mb-2 border-b border-slate-200">
             <h4 className="font-bold text-xs text-slate-400 tracking-wider uppercase px-3">Parent Portal</h4>
             <div className="flex items-center gap-2 px-3 mt-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span className="text-xs text-slate-500 font-medium">Linked: {learner.preferredName}</span>
+              <span className={`w-2 h-2 rounded-full ${learner ? 'bg-emerald-500' : 'bg-amber-400'}`} />
+              <span className="text-xs text-slate-500 font-medium">
+                {learner ? `Linked: ${learner.preferredName}` : 'Admissions Pending'}
+              </span>
             </div>
           </div>
 
@@ -175,20 +335,39 @@ export default function ParentDashboard({
                 {/* Top Quick Status Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {/* Learner status block */}
-                  <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between">
-                    <div>
-                      <span className="text-xs font-semibold text-indigo-600 tracking-wider uppercase">Active Learner</span>
-                      <h3 className="text-lg font-bold text-slate-900 mt-2">{learner.firstNames} {learner.surname}</h3>
-                      <p className="text-xs text-slate-500 mt-1 font-medium">{learner.classType} Class (Ages 4-5)</p>
-                    </div>
-                    <div className="flex items-center gap-3 mt-6 pt-4 border-t border-slate-100">
-                      <div className="p-1.5 px-2.5 rounded-lg bg-emerald-50 text-emerald-700 flex items-center gap-1.5 border border-emerald-100">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span className="text-xs font-semibold">Present</span>
+                  {learner ? (
+                    <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between">
+                      <div>
+                        <span className="text-xs font-semibold text-indigo-600 tracking-wider uppercase">Active Learner</span>
+                        <h3 className="text-lg font-bold text-slate-900 mt-2">{learner.firstNames} {learner.surname}</h3>
+                        <p className="text-xs text-slate-500 mt-1 font-medium">{learner.classType} Class</p>
                       </div>
-                      <span className="text-xs text-slate-500 font-medium">Arrived at {learner.arrivedTime || '07:45'} AM</span>
+                      <div className="flex items-center gap-3 mt-6 pt-4 border-t border-slate-100">
+                        <div className="p-1.5 px-2.5 rounded-lg bg-emerald-50 text-emerald-700 flex items-center gap-1.5 border border-emerald-100">
+                          <Clock className="w-3.5 h-3.5" />
+                          <span className="text-xs font-semibold">{learner.attendanceStatus || 'Present'}</span>
+                        </div>
+                        <span className="text-xs text-slate-500 font-medium">Arrived at {learner.arrivedTime || '07:45'} AM</span>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="bg-gradient-to-br from-rose-50 to-amber-50 rounded-2xl p-6 border border-rose-100 shadow-sm flex flex-col justify-between group hover:border-rose-200 transition-all">
+                      <div>
+                        <span className="text-xs font-bold text-rose-600 tracking-wider uppercase">Admission Status</span>
+                        <h3 className="text-base font-extrabold text-slate-900 mt-2">No Active Enrolment</h3>
+                        <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+                          Submit an admissions application to register your child at Kiddies Town ECD & Academy.
+                        </p>
+                      </div>
+                      <button
+                        onClick={onApplyOnline}
+                        className="mt-4 flex items-center justify-center gap-1.5 w-full bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold py-2 px-3 rounded-lg transition-all cursor-pointer shadow-xs"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Apply Online Now</span>
+                      </button>
+                    </div>
+                  )}
 
                   {/* Weekly Theme block */}
                   <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between">
@@ -233,38 +412,76 @@ export default function ParentDashboard({
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                   {/* Milestones Panel */}
                   <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-                    <div className="flex justify-between items-center mb-5 border-b border-slate-100 pb-3">
+                    <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
                       <div>
-                        <h3 className="font-bold text-slate-900 text-sm">School Readiness Milestones</h3>
-                        <p className="text-xs text-slate-500">Assessed metrics for 5 Year Old program graduates</p>
+                        <h3 className="font-bold text-slate-900 text-sm">Interactive ECD Milestone Insights</h3>
+                        <p className="text-xs text-slate-500">Live developmental metrics calculated from Term Reports. Click to expand tips.</p>
                       </div>
                       <span className="p-2 bg-slate-50 text-indigo-600 rounded-lg border border-slate-200">
                         <Activity className="w-5 h-5" />
                       </span>
                     </div>
 
-                    <div className="space-y-4">
-                      {milestoneCategories.map((m) => (
-                        <div key={m.label}>
-                          <div className="flex justify-between items-center text-xs font-semibold mb-1">
-                            <span className="text-slate-600 font-medium">{m.label}</span>
-                            <div className="flex items-center gap-2">
-                              <span className="text-slate-500">{m.val}%</span>
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wide ${m.bg}`}>
-                                {m.status}
+                    <div className="space-y-3.5">
+                      {dynamicMilestones.map((m) => {
+                        const isSelected = selectedMilestone === m.id;
+                        return (
+                          <div 
+                            key={m.id} 
+                            onClick={() => setSelectedMilestone(isSelected ? null : m.id)}
+                            className="p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition-all cursor-pointer group"
+                          >
+                            <div className="flex justify-between items-center text-xs font-bold mb-1.5">
+                              <span className="text-slate-700 font-semibold flex items-center gap-1.5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                                {m.label}
                               </span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-slate-500">{m.val}%</span>
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wide ${m.bg}`}>
+                                  {m.status}
+                                </span>
+                                {isSelected ? (
+                                  <ChevronUp className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600" />
+                                ) : (
+                                  <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600" />
+                                )}
+                              </div>
                             </div>
+                            <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden mb-1">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${m.val}%` }}
+                                transition={{ duration: 0.8, ease: 'easeOut' }}
+                                className={`h-full rounded-full ${m.color}`}
+                              />
+                            </div>
+                            <AnimatePresence initial={false}>
+                              {isSelected && (
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: 'auto', opacity: 1, marginTop: 8 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="overflow-hidden text-[11px] text-slate-500 leading-relaxed border-t border-slate-100/70 pt-2"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100/70 space-y-1.5">
+                                    <p className="flex items-start gap-1 font-medium text-slate-600">
+                                      <Info className="w-3.5 h-3.5 mt-0.5 shrink-0 text-indigo-500" />
+                                      <span>{m.details}</span>
+                                    </p>
+                                    <div className="bg-amber-50/75 p-2 rounded-md border border-amber-100 flex items-start gap-1.5 mt-1">
+                                      <Lightbulb className="w-3.5 h-3.5 mt-0.5 shrink-0 text-amber-600" />
+                                      <p className="text-amber-800 font-semibold">{m.recommendation}</p>
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
                           </div>
-                          <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: `${m.val}%` }}
-                              transition={{ duration: 0.8, ease: 'easeOut' }}
-                              className={`h-full rounded-full ${m.color}`}
-                            />
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -354,7 +571,7 @@ export default function ParentDashboard({
                         text: "Congratulations to our beautiful Grade R Graduates (Tigers Class)! High-resolution group pictures and parent-teacher speeches are now uploaded to the community page.",
                         likes: 42,
                         comments: 18,
-                        img: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&auto=format&fit=crop&q=60"
+                        img: "https://images.unsplash.com/photo-1627556704302-624286467c65?w=500&auto=format&fit=crop&q=65"
                       },
                       {
                         title: "Annual Ster Park Fun Walk & Picnic",
@@ -362,7 +579,7 @@ export default function ParentDashboard({
                         text: "Parents, teachers, and energetic kids! Thank you for making our annual 3km Kiddies Fun Walk on the Ster Park trail such a success. See the colorful balloon arch pics!",
                         likes: 35,
                         comments: 12,
-                        img: "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=400&auto=format&fit=crop&q=60"
+                        img: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=500&auto=format&fit=crop&q=65"
                       },
                       {
                         title: "Creative Arts & Cake Sale Morning",
@@ -370,7 +587,7 @@ export default function ParentDashboard({
                         text: "Roses and Giraffes absolute masterpieces in clay and finger-paint. Our cake sale raised sufficient funds for new safety playground mats! Thank you, community!",
                         likes: 56,
                         comments: 24,
-                        img: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&auto=format&fit=crop&q=60"
+                        img: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=500&auto=format&fit=crop&q=65"
                       }
                     ].map((post, idx) => (
                       <div key={idx} className="bg-slate-50 rounded-xl border border-slate-200 overflow-hidden hover:shadow-xs transition-all flex flex-col justify-between">
@@ -403,48 +620,62 @@ export default function ParentDashboard({
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {reports.map((report) => (
-                    <div
-                      key={report.id}
-                      className="bg-white rounded-2xl p-5 border border-slate-100 shadow-xs flex flex-col justify-between transition-all hover:border-indigo-100 hover:shadow-sm"
-                    >
-                      <div>
-                        <div className="flex items-center justify-between mb-3">
-                          <span className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full tracking-wide ${
-                            report.released
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-                              : 'bg-slate-100 text-slate-400 border border-slate-200'
-                          }`}>
-                            {report.released ? 'Released' : 'Pending Evaluation'}
-                          </span>
-                          <span className="text-xs text-slate-400 font-mono font-bold">
-                            Academic Year: {report.academicYear}
-                          </span>
-                        </div>
-                        <h4 className="font-bold text-slate-800 text-base">Term {report.term} Progress Report</h4>
-                        <p className="text-xs text-slate-400 mt-1">
-                          {report.released ? `Released on ${report.releasedDate}` : 'Results will be released mid November.'}
-                        </p>
-                      </div>
-
-                      {report.released ? (
-                        <button
-                          onClick={() => setSelectedReport(report)}
-                          className="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-slate-100 transition-all font-semibold text-xs rounded-xl cursor-pointer"
-                        >
-                          <FileText className="w-4 h-4" />
-                          View Detailed Performance Sheet
-                        </button>
-                      ) : (
-                        <div className="mt-6 flex items-center gap-2 p-3 bg-slate-50 rounded-xl text-slate-400">
-                          <HelpCircle className="w-4 h-4" />
-                          <span className="text-[10px] font-semibold">Comments locked until principal release approvals.</span>
-                        </div>
-                      )}
+                {reports.length === 0 ? (
+                  <div className="bg-white rounded-2xl p-8 border border-slate-200 text-center space-y-4">
+                    <div className="mx-auto w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                      <FileText className="w-6 h-6" />
                     </div>
-                  ))}
-                </div>
+                    <div className="max-w-md mx-auto space-y-1">
+                      <h4 className="font-bold text-slate-800 text-sm">No Performance Reports Dispatched</h4>
+                      <p className="text-xs text-slate-400">
+                        Once classes commence and term evaluation milestones are processed, teachers will post formal progress reports here.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {reports.map((report) => (
+                      <div
+                        key={report.id}
+                        className="bg-white rounded-2xl p-5 border border-slate-100 shadow-xs flex flex-col justify-between transition-all hover:border-indigo-100 hover:shadow-sm"
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <span className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full tracking-wide ${
+                              report.released
+                                ? 'bg-emerald-55 text-emerald-700 border border-emerald-110'
+                                : 'bg-slate-100 text-slate-400 border border-slate-200'
+                            }`}>
+                              {report.released ? 'Released' : 'Pending Evaluation'}
+                            </span>
+                            <span className="text-xs text-slate-400 font-mono font-bold">
+                              Academic Year: {report.academicYear}
+                            </span>
+                          </div>
+                          <h4 className="font-bold text-slate-800 text-base">Term {report.term} Progress Report</h4>
+                          <p className="text-xs text-slate-400 mt-1">
+                            {report.released ? `Released on ${report.releasedDate}` : 'Results will be released mid November.'}
+                          </p>
+                        </div>
+
+                        {report.released ? (
+                          <button
+                            onClick={() => setSelectedReport(report)}
+                            className="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-slate-100 transition-all font-semibold text-xs rounded-xl cursor-pointer"
+                          >
+                            <FileText className="w-4 h-4" />
+                            View Detailed Performance Sheet
+                          </button>
+                        ) : (
+                          <div className="mt-6 flex items-center gap-2 p-3 bg-slate-50 rounded-xl text-slate-400">
+                            <HelpCircle className="w-4 h-4" />
+                            <span className="text-[10px] font-semibold">Comments locked until principal release approvals.</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -646,14 +877,14 @@ export default function ParentDashboard({
 
                     <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between">
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Next Monthly Fee</span>
-                      <h3 className="text-2xl font-bold font-mono text-slate-800 mt-3">R2,500.00</h3>
-                      <p className="text-[10px] text-slate-500 mt-2">Due 01 Nov 2025 (Full Day)</p>
+                      <h3 className="text-2xl font-bold font-mono text-slate-800 mt-3">{learner ? "R2,500.00" : "R0.00"}</h3>
+                      <p className="text-[10px] text-slate-500 mt-2">{learner ? "Due 01 Nov 2025 (Full Day)" : "No children enrolled"}</p>
                     </div>
 
                     <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between">
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Last Processed</span>
-                      <h3 className="text-2xl font-bold font-mono text-emerald-600 mt-3">R2,500.00</h3>
-                      <p className="text-[10px] text-slate-500 mt-2">Processed on 01 Sep 2025</p>
+                      <h3 className="text-2xl font-bold font-mono text-emerald-600 mt-3">{learner ? "R2,550.00" : "N/A"}</h3>
+                      <p className="text-[10px] text-slate-500 mt-2">{learner ? "Processed on 01 Sep 2025" : "No children enrolled"}</p>
                     </div>
                   </div>
 
@@ -672,26 +903,34 @@ export default function ParentDashboard({
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 font-medium">
-                          {payments.map((item) => (
-                            <tr key={item.id} className="hover:bg-slate-50 transition-colors">
-                              <td className="py-3.5 px-2 text-slate-900 font-semibold">{item.description}</td>
-                              <td className="py-3.5 px-2 font-mono text-slate-400">{item.date}</td>
-                              <td className="py-3.5 px-2 text-right font-mono font-bold text-slate-900">
-                                R{item.amount.toLocaleString()}
-                              </td>
-                              <td className="py-3.5 px-2 text-right">
-                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black tracking-wide ${
-                                  item.status === 'Paid'
-                                    ? 'bg-emerald-50 text-emerald-700'
-                                    : item.status === 'Pending Verification'
-                                    ? 'bg-blue-50 text-blue-700'
-                                    : 'bg-rose-50 text-rose-700'
-                                }`}>
-                                  {item.status}
-                                </span>
+                          {payments.length === 0 ? (
+                            <tr>
+                              <td colSpan={4} className="py-8 text-center text-slate-400 italic">
+                                No invoice history or receipts located. Submit an admissions application to enroll!
                               </td>
                             </tr>
-                          ))}
+                          ) : (
+                            payments.map((item) => (
+                              <tr key={item.id} className="hover:bg-slate-50 transition-colors">
+                                <td className="py-3.5 px-2 text-slate-900 font-semibold">{item.description}</td>
+                                <td className="py-3.5 px-2 font-mono text-slate-400">{item.date}</td>
+                                <td className="py-3.5 px-2 text-right font-mono font-bold text-slate-900">
+                                  R{item.amount.toLocaleString()}
+                                </td>
+                                <td className="py-3.5 px-2 text-right">
+                                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-black tracking-wide ${
+                                    item.status === 'Paid'
+                                      ? 'bg-emerald-50 text-emerald-700'
+                                      : item.status === 'Pending Verification'
+                                      ? 'bg-blue-50 text-blue-700'
+                                      : 'bg-rose-50 text-rose-700'
+                                  }`}>
+                                    {item.status}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))
+                          )}
                         </tbody>
                       </table>
                     </div>
@@ -810,40 +1049,53 @@ export default function ParentDashboard({
                   <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-xs">
                     <h3 className="font-extrabold text-slate-800 text-base mb-4 border-b border-slate-100 pb-2">Learner Particulars</h3>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 text-xs font-semibold">
-                      <div className="flex justify-between border-b border-slate-100 py-1.5">
-                        <span className="text-slate-500">First Names:</span>
-                        <span className="text-slate-800">{learner.firstNames}</span>
+                    {learner ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 text-xs font-semibold">
+                        <div className="flex justify-between border-b border-slate-100 py-1.5">
+                          <span className="text-slate-500">First Names:</span>
+                          <span className="text-slate-800">{learner.firstNames}</span>
+                        </div>
+                        <div className="flex justify-between border-b border-slate-100 py-1.5">
+                          <span className="text-slate-500">Surname/Family Name:</span>
+                          <span className="text-slate-800">{learner.surname}</span>
+                        </div>
+                        <div className="flex justify-between border-b border-slate-100 py-1.5">
+                          <span className="text-slate-500">Preferred Name:</span>
+                          <span className="text-slate-800">{learner.preferredName}</span>
+                        </div>
+                        <div className="flex justify-between border-b border-slate-100 py-1.5">
+                          <span className="text-slate-500">Date of Birth:</span>
+                          <span className="text-slate-800">{learner.dob}</span>
+                        </div>
+                        <div className="flex justify-between border-b border-slate-100 py-1.5">
+                          <span className="text-slate-500">ID Number:</span>
+                          <span className="text-slate-800 font-mono">{learner.idNumber}</span>
+                        </div>
+                        <div className="flex justify-between border-b border-slate-100 py-1.5">
+                          <span className="text-slate-500">Home Language:</span>
+                          <span className="text-slate-800">{learner.homeLanguage}</span>
+                        </div>
+                        <div className="flex justify-between border-b border-slate-100 py-1.5">
+                          <span className="text-slate-500">Religion:</span>
+                          <span className="text-slate-800">{learner.religion}</span>
+                        </div>
+                        <div className="flex justify-between border-b border-slate-100 py-1.5">
+                          <span className="text-slate-500">Registered Class:</span>
+                          <span className="text-indigo-700 font-bold">{learner.classType} Class</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between border-b border-slate-100 py-1.5">
-                        <span className="text-slate-500">Surname/Family Name:</span>
-                        <span className="text-slate-800">{learner.surname}</span>
+                    ) : (
+                      <div className="text-center py-6">
+                        <p className="text-xs text-slate-400 italic">No Enrolled Child Registered</p>
+                        <button
+                          onClick={onApplyOnline}
+                          className="mt-3 inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-bold py-1.5 px-3 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Submit Admissions Application</span>
+                        </button>
                       </div>
-                      <div className="flex justify-between border-b border-slate-100 py-1.5">
-                        <span className="text-slate-500">Preferred Name:</span>
-                        <span className="text-slate-800">{learner.preferredName}</span>
-                      </div>
-                      <div className="flex justify-between border-b border-slate-100 py-1.5">
-                        <span className="text-slate-500">Date of Birth:</span>
-                        <span className="text-slate-800">{learner.dob}</span>
-                      </div>
-                      <div className="flex justify-between border-b border-slate-100 py-1.5">
-                        <span className="text-slate-500">ID Number:</span>
-                        <span className="text-slate-800 font-mono">{learner.idNumber}</span>
-                      </div>
-                      <div className="flex justify-between border-b border-slate-100 py-1.5">
-                        <span className="text-slate-500">Home Language:</span>
-                        <span className="text-slate-800">{learner.homeLanguage}</span>
-                      </div>
-                      <div className="flex justify-between border-b border-slate-100 py-1.5">
-                        <span className="text-slate-500">Religion:</span>
-                        <span className="text-slate-800">{learner.religion}</span>
-                      </div>
-                      <div className="flex justify-between border-b border-slate-100 py-1.5">
-                        <span className="text-slate-500">Registered Class:</span>
-                        <span className="text-indigo-700 font-bold">{learner.classType} Class</span>
-                      </div>
-                    </div>
+                    )}
                   </div>
 
                   <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-xs">

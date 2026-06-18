@@ -20,8 +20,30 @@ import TeacherDashboard from './components/TeacherDashboard';
 import EnrolmentWizard from './components/EnrolmentWizard';
 import KiddiesTownLogo from './components/KiddiesTownLogo';
 import LandingPage from './components/LandingPage';
+import LoginPage from './components/LoginPage';
+import FloatingBalloons from './components/FloatingBalloons';
+import { Lock } from 'lucide-react';
 
 export default function App() {
+  // Ensure browser title is set to Kiddies Town Portal
+  useEffect(() => {
+    document.title = "Kiddies Town Portal";
+  }, []);
+
+  // SESSION AUTHENTICATION STATE
+  const [loggedInUser, setLoggedInUser] = useState<{ role: 'parent' | 'admin' | 'teacher'; name: string; email: string } | null>(() => {
+    const saved = localStorage.getItem('kt_logged_in_user');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { return null; }
+    }
+    return null;
+  });
+
+  const [loginRedirectRole, setLoginRedirectRole] = useState<'parent' | 'admin' | 'teacher'>('parent');
+
+  // VIEW PERSPECTIVES SELECTOR: landing | parent | admin | teacher | enrolment | login
+  const [roleMode, setRoleMode] = useState<'landing' | 'parent' | 'admin' | 'teacher' | 'enrolment' | 'login'>('landing');
+
   // PERSISTED DATA STATES
   const [learners, setLearners] = useState<Learner[]>(initialLearners);
   const [parentProfile, setParentProfile] = useState<ParentProfile>(initialParentProfile);
@@ -37,11 +59,14 @@ export default function App() {
   const [usingNeon, setUsingNeon] = useState(false);
   const [loadingDb, setLoadingDb] = useState(true);
 
-  // Load NeonDB / Local fallback state on mount
+  // Load NeonDB / Local fallback state on mount or when user shifts login states
   useEffect(() => {
     async function loadAllData() {
       try {
-        const res = await fetch('/api/all-data');
+        const queryParams = loggedInUser
+          ? `?email=${encodeURIComponent(loggedInUser.email)}&role=${loggedInUser.role}`
+          : '';
+        const res = await fetch(`/api/all-data${queryParams}`);
         if (!res.ok) throw new Error("HTTP error " + res.status);
         const data = await res.json();
         if (data) {
@@ -63,7 +88,7 @@ export default function App() {
       }
     }
     loadAllData();
-  }, []);
+  }, [loggedInUser]);
 
   // Sync Post helper
   const postData = async (endpoint: string, payload: any) => {
@@ -82,27 +107,68 @@ export default function App() {
     }
   };
 
-  // VIEW PERSPECTIVES SELECTOR: landing | parent | admin | teacher | enrolment
-  const [roleMode, setRoleMode] = useState<'landing' | 'parent' | 'admin' | 'teacher' | 'enrolment'>('landing');
+  const handleRoleSelection = (targetId: 'landing' | 'parent' | 'admin' | 'teacher' | 'enrolment' | 'login') => {
+    if (targetId === 'landing' || targetId === 'enrolment' || targetId === 'login') {
+      setRoleMode(targetId);
+    } else {
+      // Is a protected workspace (parent, admin, teacher)
+      if (loggedInUser && loggedInUser.role === targetId) {
+        setRoleMode(targetId);
+      } else {
+        // Not logged in or logged in as a different role!
+        setLoginRedirectRole(targetId as any);
+        setRoleMode('login');
+      }
+    }
+  };
+
+  const handleLoginSuccess = (user: { role: 'parent' | 'admin' | 'teacher'; name: string; email: string }) => {
+    setLoggedInUser(user);
+    localStorage.setItem('kt_logged_in_user', JSON.stringify(user));
+    setRoleMode(user.role);
+    setNoticeAlert({
+      show: true,
+      msg: `Access authorized. Welcome back, ${user.name}!`
+    });
+    setTimeout(() => setNoticeAlert(null), 4000);
+  };
+
+  const handleLogout = () => {
+    setLoggedInUser(null);
+    localStorage.removeItem('kt_logged_in_user');
+    setRoleMode('landing');
+    setNoticeAlert({
+      show: true,
+      msg: "Session signed out successfully."
+    });
+    setTimeout(() => setNoticeAlert(null), 3000);
+  };
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Trigger notice modal simulator
   const [noticeAlert, setNoticeAlert] = useState<{ show: boolean; msg: string } | null>(null);
 
-  // Active student reference for parent dashboard (defaults to Leo)
-  const activeStudent = learners.find(s => s.id === 'student-leo') || learners[0];
+  // Active student reference for parent dashboard (defaults to parent's registered child; falls back to Leo only for demo user)
+  const activeStudent = loggedInUser
+    ? (learners.find(s => s.parentEmail === loggedInUser.email) || (loggedInUser.email === 'parent@kiddiestown.co.za' ? learners.find(s => s.id === 'student-leo') : undefined))
+    : undefined;
 
   // Auto-respond teacher simulation when parent sends a message
   useEffect(() => {
     const lastMsg = chatHistory[chatHistory.length - 1];
     if (lastMsg && lastMsg.sender === 'Parent') {
+      const parentName = lastMsg.senderName || 'Parent';
+      const parentFirstName = parentName.split(' ')[0];
+      const parentEmail = lastMsg.parentEmail || 'parent@kiddiestown.co.za';
+
       const timer = setTimeout(async () => {
         const teacherResponse: ChatMessage = {
           id: 'chat-auto-' + Date.now(),
           sender: 'Teacher',
           senderName: 'Teacher Anne',
-          text: `Hi Sarah! Yes, that sounds absolutely fine. I'll make sure to double-check their workbook exercises before standard Friday pickup. Hope you have a great afternoon!`,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          text: `Hi ${parentFirstName}! Yes, that sounds absolutely fine. I'll make sure to double-check their developmental milestones and workbook exercises before standard Friday pickup. Hope you have a great afternoon!`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          parentEmail: parentEmail
         };
         setChatHistory(prev => [...prev, teacherResponse]);
         await postData('/api/chats', teacherResponse);
@@ -113,24 +179,28 @@ export default function App() {
 
   // HANDLERS
   const handleParentAddMessage = async (text: string) => {
+    const parentEmailAddress = loggedInUser ? loggedInUser.email : 'parent@kiddiestown.co.za';
     const newMsg: ChatMessage = {
       id: 'chat-' + Date.now(),
       sender: 'Parent',
-      senderName: parentProfile.name,
+      senderName: parentProfile.name || 'Parent',
       text: text,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      parentEmail: parentEmailAddress
     };
     setChatHistory(prev => [...prev, newMsg]);
     await postData('/api/chats', newMsg);
   };
 
-  const handleTeacherAddMessage = async (text: string) => {
+  const handleTeacherAddMessage = async (text: string, parentEmailAddress?: string) => {
+    const targetEmail = parentEmailAddress || 'parent@kiddiestown.co.za';
     const newMsg: ChatMessage = {
       id: 'chat-' + Date.now(),
       sender: 'Teacher',
       senderName: 'Teacher Anne',
       text: text,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      parentEmail: targetEmail
     };
     setChatHistory(prev => [...prev, newMsg]);
     await postData('/api/chats', newMsg);
@@ -183,7 +253,8 @@ export default function App() {
         homeLanguage: applicant.childParticulars.homeLanguage || 'Sesotho',
         classType: applicant.childParticulars.classType || 'Giraffes',
         attendanceStatus: 'Present',
-        arrivedTime: '08:00'
+        arrivedTime: '08:00',
+        parentEmail: applicant.parentParticulars?.email
       };
       setLearners(prev => [...prev, newGrad]);
       await postData('/api/learners', newGrad);
@@ -238,6 +309,31 @@ export default function App() {
   const handleWizardComplete = async (app: EnrolmentApplication) => {
     setEnrolments(prev => [app, ...prev]);
     await postData('/api/enrolments', app);
+    if (loggedInUser && loggedInUser.role === 'parent') {
+      setRoleMode('parent');
+    } else {
+      setRoleMode('landing');
+    }
+  };
+
+  const handleResetDb = async () => {
+    try {
+      const res = await fetch('/api/all-data');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.learners) setLearners(data.learners);
+        if (data.parentProfile) setParentProfile(data.parentProfile);
+        if (data.progressReports) setProgressReports(data.progressReports);
+        if (data.paymentHistory) setPaymentHistory(data.paymentHistory);
+        if (data.chatHistory) setChatHistory(data.chatHistory);
+        if (data.themes) setThemes(data.themes);
+        if (data.events) setEvents(data.events);
+        if (data.journalPosts) setJournalPosts(data.journalPosts);
+        if (data.enrolments) setEnrolments(data.enrolments);
+      }
+    } catch (err) {
+      console.error("Failed to re-hydrate state on database reset:", err);
+    }
   };
 
   // Role Mode specific branding color classes generator
@@ -288,23 +384,29 @@ export default function App() {
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-3">Workspace Roles</p>
               {[
                 { id: 'landing', label: '🌟 School Home Page', desc: 'Public Portal', text: 'Browse programs, admission FAQs' },
-                { id: 'parent', label: '🏠 Parent Workspace', desc: 'Sarah Mbeki', text: 'View reports, pay, chat' },
-                { id: 'admin', label: '💼 Admin Portal', desc: 'Shineon M.', text: 'Arrears logs, calendar' },
-                { id: 'teacher', label: '👩‍🏫 Teacher Hub', desc: 'Teacher Anne', text: 'Mark Roster, set themes' },
+                { id: 'parent', label: '🏠 Parent Workspace', desc: 'Sarah Mbeki', text: 'View reports, pay, chat', secure: true },
+                { id: 'admin', label: '💼 Admin Portal', desc: 'Shineon M.', text: 'Arrears logs, calendar', secure: true },
+                { id: 'teacher', label: '👩‍🏫 Teacher Hub', desc: 'Teacher Anne', text: 'Mark Roster, set themes', secure: true },
                 { id: 'enrolment', label: '📝 New Enrolment', desc: '6-Step Wizard', text: 'Apply for admission' },
               ].map((r) => {
                 const isActive = roleMode === r.id;
+                const isLocked = r.secure && (!loggedInUser || loggedInUser.role !== r.id);
                 return (
                   <button
                     key={r.id}
-                    onClick={() => setRoleMode(r.id as any)}
-                    className={`w-full flex items-start gap-3 py-2 rounded-lg text-xs font-semibold tracking-wide transition-all text-left cursor-pointer ${getRoleColors(r.id, isActive)}`}
+                    onClick={() => handleRoleSelection(r.id as any)}
+                    className={`w-full flex items-center justify-between py-2 rounded-lg text-xs font-semibold tracking-wide transition-all text-left cursor-pointer ${getRoleColors(r.id, isActive)}`}
                     title={r.text}
                   >
-                    <div className="leading-tight mt-0.5">
+                    <div className="leading-tight mt-0.5 pl-2">
                       <span className="block font-bold">{r.label}</span>
                       <span className="text-[10px] text-slate-400 font-semibold block mt-1">{r.desc}</span>
                     </div>
+                    {isLocked && (
+                      <span className="mr-3 p-1.5 bg-slate-100 text-slate-400 rounded-md shrink-0" title="Authentication Required">
+                        <Lock className="w-3.5 h-3.5" />
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -330,20 +432,35 @@ export default function App() {
           </div>
 
           {/* User Card at bottom of sidebar matching the AetherFlow recording */}
-          <div className="pt-4 border-t border-slate-200 mt-auto">
+          <div className="pt-4 border-t border-slate-200 mt-auto flex flex-col gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-indigo-600 font-bold border border-slate-200 shrink-0">
-                {roleMode === 'parent' ? 'SM' : roleMode === 'admin' ? 'SM' : roleMode === 'teacher' ? 'TA' : 'GA'}
+              <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-indigo-600 font-extrabold border border-indigo-100 shrink-0">
+                {loggedInUser ? loggedInUser.name.split(' ').map((n: string) => n[0]).join('') : 'GA'}
               </div>
-              <div>
-                <h4 className="text-xs font-bold text-slate-900">
-                  {roleMode === 'parent' ? 'Sarah Mbeki' : roleMode === 'admin' ? 'Shineon M.' : roleMode === 'teacher' ? 'Teacher Anne' : 'Guest Applicant'}
+              <div className="min-w-0 flex-1">
+                <h4 className="text-xs font-bold text-slate-900 truncate">
+                  {loggedInUser ? loggedInUser.name : 'Guest Applicant'}
                 </h4>
-                <p className="text-[10px] text-slate-500 font-medium font-mono">
-                  {roleMode === 'parent' ? 'Parent profile' : roleMode === 'admin' ? 'Principal' : roleMode === 'teacher' ? 'Tigers Lead' : 'Admissions Portal'}
+                <p className="text-[10px] text-slate-400 font-semibold font-mono truncate">
+                  {loggedInUser ? `${loggedInUser.role.toUpperCase()} active` : 'No Active Session'}
                 </p>
               </div>
             </div>
+            {loggedInUser ? (
+              <button
+                onClick={handleLogout}
+                className="w-full text-center py-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-black text-[9px] uppercase rounded-lg tracking-wider cursor-pointer"
+              >
+                Sign Out Session
+              </button>
+            ) : (
+              <button
+                onClick={() => handleRoleSelection('login')}
+                className="w-full text-center py-2 bg-indigo-50 hover:bg-indigo-100 border border-indigo-150 text-indigo-700 font-black text-[9px] uppercase rounded-lg tracking-wider cursor-pointer animate-pulse"
+              >
+                Authenticate Now
+              </button>
+            )}
           </div>
         </div>
       </aside>
@@ -393,25 +510,31 @@ export default function App() {
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-2">Workspace Roles</p>
                   {[
                     { id: 'landing', label: '🌟 School Home Page', desc: 'Public Portal' },
-                    { id: 'parent', label: '🏠 Parent Workspace', desc: 'Sarah Mbeki' },
-                    { id: 'admin', label: '💼 Admin Portal', desc: 'Shineon M.' },
-                    { id: 'teacher', label: '👩‍🏫 Teacher Workspace', desc: 'Teacher Anne' },
+                    { id: 'parent', label: '🏠 Parent Workspace', desc: 'Sarah Mbeki', secure: true },
+                    { id: 'admin', label: '💼 Admin Portal', desc: 'Shineon M.', secure: true },
+                    { id: 'teacher', label: '👩‍🏫 Teacher Workspace', desc: 'Teacher Anne', secure: true },
                     { id: 'enrolment', label: '📝 New Enrolment', desc: 'Admission Wizard' },
                   ].map((r) => {
                     const isActive = roleMode === r.id;
+                    const isLocked = r.secure && (!loggedInUser || loggedInUser.role !== r.id);
                     return (
                       <button
                         key={r.id}
                         onClick={() => {
-                          setRoleMode(r.id as any);
+                          handleRoleSelection(r.id as any);
                           setMobileMenuOpen(false);
                         }}
-                        className={`w-full flex items-start gap-3 py-2.5 rounded-lg text-xs font-semibold tracking-wide transition-all text-left cursor-pointer ${getRoleColors(r.id, isActive)}`}
+                        className={`w-full flex items-center justify-between py-2.5 rounded-lg text-xs font-semibold tracking-wide transition-all text-left cursor-pointer ${getRoleColors(r.id, isActive)}`}
                       >
-                        <div className="leading-tight mt-1">
+                        <div className="leading-tight mt-1 pl-2">
                           <span className="block font-bold">{r.label}</span>
-                          <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">{r.desc}</span>
+                          <span className="text-[10px] text-slate-400 font-semibold block mt-1">{r.desc}</span>
                         </div>
+                        {isLocked && (
+                          <span className="mr-3 p-1 bg-slate-100 text-slate-400 rounded-md shrink-0">
+                            <Lock className="w-3 h-3" />
+                          </span>
+                        )}
                       </button>
                     );
                   })}
@@ -436,20 +559,41 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-slate-200">
+              <div className="pt-4 border-t border-slate-200 flex flex-col gap-2">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-indigo-600 font-bold border border-slate-200 shrink-0">
-                    {roleMode === 'parent' ? 'SM' : roleMode === 'admin' ? 'SM' : roleMode === 'teacher' ? 'TA' : 'GA'}
+                    {loggedInUser ? loggedInUser.name.split(' ').map((n: string) => n[0]).join('') : 'GA'}
                   </div>
                   <div>
                     <h4 className="text-xs font-bold text-slate-900">
-                      {roleMode === 'parent' ? 'Sarah Mbeki' : roleMode === 'admin' ? 'Shineon M.' : roleMode === 'teacher' ? 'Teacher Anne' : 'Guest Applicant'}
+                      {loggedInUser ? loggedInUser.name : 'Guest Applicant'}
                     </h4>
-                    <p className="text-[9px] text-slate-500 font-medium">
-                      {roleMode === 'parent' ? 'Parent profile' : roleMode === 'admin' ? 'Principal' : roleMode === 'teacher' ? 'Tigers Instructor' : 'Admissions'}
+                    <p className="text-[9px] text-slate-450 font-bold uppercase tracking-wider">
+                      {loggedInUser ? `${loggedInUser.role} active` : 'No Active Session'}
                     </p>
                   </div>
                 </div>
+                {loggedInUser ? (
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full text-center py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-black text-[9px] uppercase rounded-md tracking-wider cursor-pointer"
+                  >
+                    Sign Out
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      handleRoleSelection('login');
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full text-center py-1.5 bg-indigo-50 hover:bg-indigo-100 border border-indigo-150 text-indigo-700 font-black text-[9px] uppercase rounded-md tracking-wider cursor-pointer"
+                  >
+                    Sign In
+                  </button>
+                )}
               </div>
             </motion.aside>
           </>
@@ -552,12 +696,20 @@ export default function App() {
                 </button>
               )}
               {roleMode === 'landing' && (
-                <button 
-                  onClick={() => setRoleMode('enrolment')}
-                  className="bg-rose-500 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-rose-600 transition-colors shadow-xs cursor-pointer"
-                >
-                  Apply Online
-                </button>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => handleRoleSelection('login')}
+                    className="bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold px-4 py-2 rounded-lg hover:bg-indigo-150/70 transition-colors shadow-xs cursor-pointer"
+                  >
+                    Parent/Staff Login
+                  </button>
+                  <button 
+                    onClick={() => setRoleMode('enrolment')}
+                    className="bg-rose-500 text-white text-xs font-bold px-3 py-2 rounded-lg hover:bg-rose-600 transition-colors shadow-xs cursor-pointer md:px-4"
+                  >
+                    Apply Online
+                  </button>
+                </div>
               )}
               {roleMode === 'enrolment' && (
                 <button 
@@ -572,7 +724,8 @@ export default function App() {
         </header>
 
         {/* MAIN WORKSPACE BODY COMPOSITION */}
-        <main className="flex-1 p-6 md:p-8">
+        <main className="flex-1 p-6 md:p-8 relative overflow-hidden isolate">
+          {roleMode !== 'landing' && <FloatingBalloons count={12} seed={8} opacity="opacity-[0.22]" />}
           <AnimatePresence mode="wait">
             <motion.div
               key={roleMode}
@@ -582,7 +735,15 @@ export default function App() {
               transition={{ duration: 0.2 }}
             >
               {roleMode === 'landing' && (
-                <LandingPage onSelectRole={(role) => setRoleMode(role)} />
+                <LandingPage onSelectRole={(role) => handleRoleSelection(role)} />
+              )}
+
+              {roleMode === 'login' && (
+                <LoginPage
+                  initialRole={loginRedirectRole}
+                  onLoginSuccess={(user) => handleLoginSuccess(user)}
+                  onCancel={() => setRoleMode('landing')}
+                />
               )}
 
               {roleMode === 'parent' && (
@@ -598,6 +759,7 @@ export default function App() {
                   onAddMessage={handleParentAddMessage}
                   onRsvpEvent={handleRsvpEvent}
                   onAddPayment={handleAddPayment}
+                  onApplyOnline={() => setRoleMode('enrolment')}
                 />
               )}
 
@@ -610,6 +772,7 @@ export default function App() {
                   onAddEvent={handleAddEvent}
                   onApproveEnrolment={handleApproveEnrolment}
                   onSendNotice={handleSendNotice}
+                  onResetDb={handleResetDb}
                 />
               )}
 
@@ -630,6 +793,7 @@ export default function App() {
               {roleMode === 'enrolment' && (
                 <EnrolmentWizard
                   onComplete={handleWizardComplete}
+                  parentProfile={parentProfile}
                 />
               )}
             </motion.div>
