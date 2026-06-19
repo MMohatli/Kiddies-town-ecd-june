@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useDragControls } from 'motion/react';
 import { 
   Sparkles, ShieldCheck, HelpCircle, Laptop, Award, ArrowRight, ArrowLeft, 
   UserCheck, Terminal, Heart, Zap, FileSpreadsheet, Lock
@@ -23,6 +23,8 @@ export default function PitchConsole({
   const [activeSlide, setActiveSlide] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
   const [baloonsList, setBaloonsList] = useState<{ id: number; char: string; left: number; delay: number; duration: number }[]>([]);
+  
+  const dragControls = useDragControls();
 
   // 1. PITCH DECK SLIDERS DATA
   const pitchSlides = [
@@ -125,6 +127,8 @@ export default function PitchConsole({
             <motion.button
               layoutId="pitch-panel-layout"
               onClick={() => setIsOpen(true)}
+              drag
+              dragMomentum={false}
               className="px-4.5 py-3 rounded-full bg-slate-900 border-2 border-slate-950 text-white shadow-2xl flex items-center gap-2.5 cursor-pointer hover:bg-slate-950 transition-all duration-300 transform"
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -145,19 +149,27 @@ export default function PitchConsole({
               initial={{ y: 50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 50, opacity: 0 }}
+              drag
+              dragControls={dragControls}
+              dragListener={false}
+              dragMomentum={false}
             >
               {/* Main Content Container with standard padding */}
               <div className="p-5 md:p-6 flex flex-col gap-4">
                 {/* Title Header */}
-                <div className="flex justify-between items-center border-b border-slate-900 pb-3">
+                <div 
+                  onPointerDown={(e) => dragControls.start(e)}
+                  className="flex justify-between items-center border-b border-slate-900 pb-3 cursor-move active:cursor-grabbing select-none"
+                >
                   <div className="flex items-center gap-2">
                     <NdebeleArtAccent type="badge" className="scale-90" />
                     <span className="text-[11.5px] font-black font-mono tracking-widest text-[#FBBF24] uppercase">
-                      ECD Enterprise Pitch Panel
+                      ECD Enterprise Pitch Panel ⚡
                     </span>
                   </div>
                   <button 
                     onClick={() => setIsOpen(false)}
+                    onPointerDown={(e) => e.stopPropagation()}
                     className="text-xs text-slate-400 hover:text-rose-400 font-mono bg-slate-900 px-2.5 py-1 rounded-md transition-colors cursor-pointer select-none border border-slate-800"
                   >
                     Close [X]
