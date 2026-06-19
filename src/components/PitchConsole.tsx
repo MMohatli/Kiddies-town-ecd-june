@@ -4,6 +4,7 @@ import {
   Sparkles, ShieldCheck, HelpCircle, Laptop, Award, ArrowRight, ArrowLeft, 
   UserCheck, Terminal, Heart, Zap, FileSpreadsheet, Lock
 } from 'lucide-react';
+import NdebeleArtAccent from './NdebeleArtAccent';
 
 interface PitchConsoleProps {
   onSelectRole: (role: 'landing' | 'parent' | 'admin' | 'teacher' | 'enrolment' | 'login') => void;
@@ -117,102 +118,107 @@ export default function PitchConsole({
 
   return (
     <>
-      {/* 1. ANIMATED FLOATING PITCH CONSOLE */}
+      {/* 1. ANIMATED FLOATING PITCH CONSOLE WITH ORIGINAL NDEBELE VIBES */}
       <div className="fixed bottom-6 left-6 z-40 select-none">
         <AnimatePresence>
           {!isOpen ? (
             <motion.button
               layoutId="pitch-panel-layout"
               onClick={() => setIsOpen(true)}
-              className="px-4.5 py-3 rounded-full bg-slate-900 border border-indigo-500/30 text-white shadow-2xl flex items-center gap-2 cursor-pointer hover:bg-indigo-950 transition-colors duration-200"
+              className="px-4.5 py-3 rounded-full bg-slate-900 border-2 border-slate-950 text-white shadow-2xl flex items-center gap-2.5 cursor-pointer hover:bg-slate-950 transition-all duration-300 transform"
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              whileHover={{ y: -3 }}
+              whileHover={{ y: -4, scale: 1.03 }}
             >
-              <div className="relative">
-                <Laptop className="w-4 h-4 text-indigo-400" />
-                <span className="absolute -top-1.5 -right-1.5 w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+              <div className="relative flex items-center gap-1">
+                <NdebeleArtAccent type="badge" className="scale-75 shadow-sm border-white/20" />
+                <Laptop className="w-4 h-4 text-indigo-300" />
+                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-amber-400 animate-ping" />
               </div>
-              <span className="text-xs font-bold font-mono tracking-wider">STAKEHOLDER PITCH CONTROL</span>
+              <span className="text-xs font-black font-mono tracking-wider text-slate-100">STAKEHOLDER PITCH CONTROL</span>
             </motion.button>
           ) : (
             <motion.div
               layoutId="pitch-panel-layout"
-              className="w-[365px] md:w-[410px] bg-slate-950/95 text-indigo-50 border border-slate-800 rounded-3xl shadow-3xl backdrop-blur-2xl p-5 md:p-6 flex flex-col gap-4 relative overflow-hidden"
+              className="w-[365px] md:w-[410px] bg-slate-950 text-indigo-50 border-3 border-slate-900 rounded-3xl shadow-3xl p-0 flex flex-col relative overflow-hidden"
               initial={{ y: 50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 50, opacity: 0 }}
             >
-              {/* Glowing decorative gradient background */}
-              <div className="absolute -top-10 -right-10 w-32 h-32 bg-indigo-600/10 rounded-full blur-2xl pointer-events-none" />
-
-              {/* Title Header */}
-              <div className="flex justify-between items-center border-b border-slate-900 pb-3">
-                <div className="flex items-center gap-2">
-                  <Terminal className="w-4 h-4 text-indigo-400" />
-                  <span className="text-[11px] font-black font-mono tracking-widest text-indigo-300 uppercase">
-                    ECD Enterprise Pitch Panel
-                  </span>
-                </div>
-                <button 
-                  onClick={() => setIsOpen(false)}
-                  className="text-xs text-slate-400 hover:text-white font-mono bg-slate-900 px-2.5 py-1 rounded-md transition-colors cursor-pointer"
-                >
-                  Close [X]
-                </button>
-              </div>
-
-              {/* SLIDE VISUALIZER (PITCH PRESENTATION HIGHLIGHTS) */}
-              <div className="bg-slate-900/50 rounded-2xl p-4 border border-slate-900">
-                <div className="flex justify-between items-start gap-4 mb-3">
-                  <div className="flex items-center gap-2 text-indigo-300">
-                    {(() => {
-                      const SlideIcon = pitchSlides[activeSlide].icon;
-                      return <SlideIcon className="w-4 h-4 shrink-0 stroke-[2.5]" />;
-                    })()}
-                    <h4 className="text-[11.5px] font-black uppercase tracking-wider text-white">
-                      {pitchSlides[activeSlide].title}
-                    </h4>
+              {/* Main Content Container with standard padding */}
+              <div className="p-5 md:p-6 flex flex-col gap-4">
+                {/* Title Header */}
+                <div className="flex justify-between items-center border-b border-slate-900 pb-3">
+                  <div className="flex items-center gap-2">
+                    <NdebeleArtAccent type="badge" className="scale-90" />
+                    <span className="text-[11.5px] font-black font-mono tracking-widest text-[#FBBF24] uppercase">
+                      ECD Enterprise Pitch Panel
+                    </span>
                   </div>
-                  {/* Slide numbering indicator */}
-                  <span className="text-[9.5px] font-bold font-mono text-indigo-400 bg-indigo-950/80 px-2 py-0.5 rounded border border-indigo-800/40 shrink-0">
-                    Slide {activeSlide + 1} of 3
-                  </span>
+                  <button 
+                    onClick={() => setIsOpen(false)}
+                    className="text-xs text-slate-400 hover:text-rose-400 font-mono bg-slate-900 px-2.5 py-1 rounded-md transition-colors cursor-pointer select-none border border-slate-800"
+                  >
+                    Close [X]
+                  </button>
                 </div>
 
-                <div className="space-y-3 min-h-[140px] flex flex-col justify-center">
-                  {pitchSlides[activeSlide].bullets.map((bullet, idx) => (
-                    <div key={idx} className="flex gap-2.5 items-start">
-                      <Zap className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
-                      <div>
-                        <h5 className="text-[10.5px] font-extrabold text-indigo-200">{bullet.label}</h5>
-                        <p className="text-[10px] text-slate-400 mt-0.5 leading-relaxed font-semibold">
-                          {bullet.desc}
-                        </p>
-                      </div>
+                {/* SLIDE VISUALIZER (PITCH PRESENTATION HIGHLIGHTS) */}
+                <div className="bg-slate-900/40 rounded-2xl p-4 border border-slate-900 relative">
+                  {/* Subtle right-hand vertical design stripe for slide section */}
+                  <div className="absolute right-0 top-0 bottom-0 w-2.5 overflow-hidden rounded-r-2xl opacity-40">
+                    <NdebeleArtAccent type="vertical-stripe" className="h-full border-0" />
+                  </div>
+
+                  <div className="flex justify-between items-start gap-4 mb-3 md:pr-4">
+                    <div className="flex items-center gap-2 text-indigo-300">
+                      {(() => {
+                        const SlideIcon = pitchSlides[activeSlide].icon;
+                        return <SlideIcon className="w-4 h-4 shrink-0 stroke-[2.5]" />;
+                      })()}
+                      <h4 className="text-[11.5px] font-black uppercase tracking-wider text-slate-100">
+                        {pitchSlides[activeSlide].title}
+                      </h4>
                     </div>
-                  ))}
-                </div>
+                    {/* Slide numbering indicator */}
+                    <span className="text-[9.5px] font-bold font-mono text-indigo-400 bg-indigo-950/80 px-2 py-0.5 rounded border border-indigo-800/40 shrink-0">
+                      Slide {activeSlide + 1} of 3
+                    </span>
+                  </div>
 
-                {/* Slicer controllers */}
-                <div className="flex justify-between items-center mt-3 pt-3.5 border-t border-slate-900/50">
-                  <button
-                    onClick={() => setActiveSlide(p => Math.max(0, p - 1))}
-                    disabled={activeSlide === 0}
-                    className="p-1 px-2.5 rounded bg-slate-900 hover:bg-slate-805 disabled:opacity-40 text-[10px] text-indigo-200 font-bold flex items-center gap-1 cursor-pointer transition-colors"
-                  >
-                    <ArrowLeft className="w-3 h-3" /> Back
-                  </button>
-                  <button
-                    onClick={() => setActiveSlide(p => Math.min(pitchSlides.length - 1, p + 1))}
-                    disabled={activeSlide === pitchSlides.length - 1}
-                    className="p-1 px-2.5 rounded bg-slate-900 hover:bg-indigo-900 disabled:opacity-40 text-[10px] text-indigo-200 font-bold flex items-center gap-1 cursor-pointer transition-colors"
-                  >
-                    Next <ArrowRight className="w-3 h-3" />
-                  </button>
+                  <div className="space-y-3 min-h-[148px] flex flex-col justify-center md:pr-4">
+                    {pitchSlides[activeSlide].bullets.map((bullet, idx) => (
+                      <div key={idx} className="flex gap-2.5 items-start">
+                        <Zap className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                        <div>
+                          <h5 className="text-[10.5px] font-extrabold text-indigo-200">{bullet.label}</h5>
+                          <p className="text-[10px] text-slate-400 mt-0.5 leading-relaxed font-semibold">
+                            {bullet.desc}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Slicer controllers */}
+                  <div className="flex justify-between items-center mt-3 pt-3.5 border-t border-slate-900/50 md:pr-4">
+                    <button
+                      onClick={() => setActiveSlide(p => Math.max(0, p - 1))}
+                      disabled={activeSlide === 0}
+                      className="p-1 px-2.5 rounded bg-slate-950 hover:bg-slate-805 disabled:opacity-40 text-[10px] text-indigo-200 font-bold flex items-center gap-1 cursor-pointer transition-all border border-slate-800"
+                    >
+                      <ArrowLeft className="w-3 h-3" /> Back
+                    </button>
+                    <button
+                      onClick={() => setActiveSlide(p => Math.min(pitchSlides.length - 1, p + 1))}
+                      disabled={activeSlide === pitchSlides.length - 1}
+                      className="p-1 px-2.5 rounded bg-indigo-950/80 hover:bg-indigo-900 disabled:opacity-40 text-[10px] text-indigo-100 font-bold flex items-center gap-1 cursor-pointer transition-all border border-indigo-800/50"
+                    >
+                      Next <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
-              </div>
 
               {/* DEMO FAST ACTION CHEATS */}
               <div className="space-y-3">
@@ -279,6 +285,7 @@ export default function PitchConsole({
               <div className="text-[9px] text-center text-slate-500 font-mono mt-1">
                 Kiddies Town • Product Presentation Layer 1.0.0
               </div>
+            </div>
             </motion.div>
           )}
         </AnimatePresence>
