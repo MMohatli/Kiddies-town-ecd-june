@@ -213,7 +213,7 @@ export default function LandingPage({ onSelectRole }: LandingPageProps) {
                 <button
                   id="btn-parent-portal-cta"
                   onClick={() => onSelectRole('parent')}
-                  className="bg-indigo-600 text-white font-bold text-sm px-6 py-3.5 rounded-xl hover:bg-slate-900 transition-all shadow-md shadow-indigo-100 hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer group"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm px-6 py-3.5 rounded-xl transition-all shadow-md shadow-indigo-100 hover:shadow-lg hover:shadow-indigo-200/50 flex items-center justify-center gap-2 cursor-pointer group bounce-elastic"
                 >
                   Enter Parent Workspace
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -221,14 +221,14 @@ export default function LandingPage({ onSelectRole }: LandingPageProps) {
                 <button
                   id="btn-enrol-cta"
                   onClick={() => onSelectRole('enrolment')}
-                  className="bg-rose-500 text-white font-bold text-sm px-6 py-3.5 rounded-xl hover:bg-rose-600 transition-all shadow-md shadow-rose-100 hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+                  className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-sm px-6 py-3.5 rounded-xl transition-all shadow-md shadow-rose-100 hover:shadow-lg hover:shadow-rose-200/50 flex items-center justify-center gap-2 cursor-pointer bounce-elastic"
                 >
                   Apply Online (Wizard)
                 </button>
                 <button
                   id="btn-teacher-cta"
                   onClick={() => onSelectRole('teacher')}
-                  className="bg-slate-100 text-slate-700 border border-slate-200 font-bold text-sm px-5 py-3.5 rounded-xl hover:bg-slate-200 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="bg-slate-100 text-slate-700 border border-slate-200 font-bold text-sm px-5 py-3.5 rounded-xl hover:bg-slate-250 transition-all flex items-center justify-center gap-2 cursor-pointer bounce-elastic"
                 >
                   Teacher Log
                 </button>

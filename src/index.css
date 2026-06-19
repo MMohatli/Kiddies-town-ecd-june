@@ -14,8 +14,8 @@
   
   .glass-card {
     background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
   }
 
   .premium-shadow {
@@ -23,13 +23,41 @@
   }
 
   .premium-card-hover {
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .premium-card-hover:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 40px rgba(99, 102, 241, 0.05), 0 1px 3px rgba(99, 102, 241, 0.02);
-    border-color: rgba(99, 102, 241, 0.15);
+    transform: translateY(-3px) scale(1.006);
+    box-shadow: 0 16px 42px rgba(99, 102, 241, 0.06), 0 1px 3px rgba(99, 102, 241, 0.03);
+    border-color: rgba(99, 102, 241, 0.2);
   }
+
+  /* Cutting-edge interactions & animations utilities */
+  .glow-indigo {
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+  }
+  
+  .glow-amber {
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
+  }
+
+  .bounce-elastic {
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .bounce-elastic:hover {
+    transform: scale(1.03);
+  }
+  
+  .sparkle-slow {
+    background-image: linear-gradient(120deg, #818cf8 0%, #f472b6 50%, #fb923c 100%);
+    background-size: 200% auto;
+    animation: shine-grad 6s linear infinite;
+  }
+}
+
+@keyframes shine-grad {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* Global scrollbar adjustments for a clean dashboard look */

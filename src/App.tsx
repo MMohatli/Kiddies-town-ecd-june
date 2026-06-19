@@ -22,12 +22,28 @@ import KiddiesTownLogo from './components/KiddiesTownLogo';
 import LandingPage from './components/LandingPage';
 import LoginPage from './components/LoginPage';
 import FloatingBalloons from './components/FloatingBalloons';
+import PitchConsole from './components/PitchConsole';
 import { Lock } from 'lucide-react';
 
 export default function App() {
-  // Ensure browser title is set to Kiddies Town Portal
+  // Ensure browser title is set to Kiddies Town Portal with clean title enforcement
   useEffect(() => {
     document.title = "Kiddies Town Portal";
+    const handleVisibilityChange = () => {
+      document.title = "Kiddies Town Portal";
+    };
+    window.addEventListener("visibilitychange", handleVisibilityChange);
+    
+    const titleInterval = setInterval(() => {
+      if (document.title !== "Kiddies Town Portal") {
+        document.title = "Kiddies Town Portal";
+      }
+    }, 1000);
+
+    return () => {
+      window.removeEventListener("visibilitychange", handleVisibilityChange);
+      clearInterval(titleInterval);
+    };
   }, []);
 
   // SESSION AUTHENTICATION STATE
@@ -824,6 +840,14 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* STAKEHOLDER PRESENTATION PITCH CONSOLE */}
+      <PitchConsole
+        onSelectRole={handleRoleSelection}
+        onLoginSuccess={handleLoginSuccess}
+        onLogout={handleLogout}
+        currentRoleMode={roleMode}
+      />
     </div>
   );
 }

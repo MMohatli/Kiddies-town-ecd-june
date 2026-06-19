@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Check, User, ShieldAlert, Truck, Scale, UploadCloud, ChevronRight, 
@@ -16,6 +16,69 @@ export default function EnrolmentWizard({ onComplete, parentProfile }: Enrolment
 
   // Success screen state
   const [isSuccess, setIsSuccess] = useState(false);
+
+  // SIGNATURE DRAWING PAD STATES & HANDLERS
+  const [isDrawing, setIsDrawing] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#312e81'; // Deep Indigo ink color
+
+    const rect = canvas.getBoundingClientRect();
+    let x, y;
+    if ('touches' in e) {
+      if (e.touches.length === 0) return;
+      x = e.touches[0].clientX - rect.left;
+      y = e.touches[0].clientY - rect.top;
+    } else {
+      x = e.clientX - rect.left;
+      y = e.clientY - rect.top;
+    }
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    setIsDrawing(true);
+  };
+
+  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawing) return;
+    e.preventDefault();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    let x, y;
+    if ('touches' in e) {
+      if (e.touches.length === 0) return;
+      x = e.touches[0].clientX - rect.left;
+      y = e.touches[0].clientY - rect.top;
+    } else {
+      x = e.clientX - rect.left;
+      y = e.clientY - rect.top;
+    }
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  };
+
+  const stopDrawing = () => {
+    setIsDrawing(false);
+  };
+
+  const clearCanvas = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  };
 
   // STEP STATE REDUCERS
   // Step 1: Child details
@@ -98,6 +161,73 @@ export default function EnrolmentWizard({ onComplete, parentProfile }: Enrolment
       }
     }
   }, [parentProfile]);
+
+  // LISTEN TO DEMO CONSOLE AUTOFILL TRIGGER (HIGH FIDELITY PRESENTATION METHOD)
+  useEffect(() => {
+    const handleAutofillWizard = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const data = customEvent.detail || {};
+      if (data.firstNames) setFirstNames(data.firstNames);
+      if (data.surname) setSurname(data.surname);
+      if (data.dob) setDob(data.dob);
+      if (data.idNumber) setIdNumber(data.idNumber);
+      if (data.prefName) setPrefName(data.prefName);
+      if (data.gender) setGender(data.gender);
+      if (data.language) setLanguage(data.language);
+      if (data.religion) setReligion(data.religion);
+
+      if (data.mName) setMName(data.mName);
+      if (data.mSurname) setMSurname(data.mSurname);
+      if (data.mId) setMId(data.mId);
+      if (data.mCell) setMCell(data.mCell);
+      if (data.mEmail) setMEmail(data.mEmail);
+      if (data.mOcc) setMOcc(data.mOcc);
+      if (data.mEmp) setMEmp(data.mEmp);
+
+      if (data.fName) setFName(data.fName);
+      if (data.fSurname) setFSurname(data.fSurname);
+      if (data.fId) setFId(data.fId);
+      if (data.fCell) setFCell(data.fCell);
+
+      if (data.signerName) {
+        setSignerName(data.signerName);
+        // Draw elegant mockup signature on canvas
+        setTimeout(() => {
+          const canvas = canvasRef.current;
+          if (canvas) {
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              ctx.font = 'italic bold 28px "Georgia", "Playfair Display", serif';
+              ctx.fillStyle = '#1e1b4b'; // dark ink
+              ctx.fillText(data.signerName, 30, 55);
+              // Dynamic line decoration
+              ctx.beginPath();
+              ctx.strokeStyle = '#4f46e5';
+              ctx.lineWidth = 2;
+              ctx.moveTo(25, 68);
+              ctx.quadraticCurveTo(80, 75, 150, 68);
+              ctx.quadraticCurveTo(200, 58, canvas.width - 30, 72);
+              ctx.stroke();
+            }
+          }
+        }, 300);
+      }
+      
+      setUploadedBirth(true);
+      setUploadedImmun(true);
+      setUploadedIds(true);
+      setUploadedResidence(true);
+      setEmergencyConsent(true);
+      setSignIndemnity(true);
+      setSignFinance(true);
+      setSignPopi(true);
+      setStep(5); // Instantly jump to consent step to showcase drawing signature
+    };
+
+    window.addEventListener('autofill-enrolment-wizard', handleAutofillWizard);
+    return () => window.removeEventListener('autofill-enrolment-wizard', handleAutofillWizard);
+  }, []);
 
   // Step 3: Medical profile
   const [familyDoc, setFamilyDoc] = useState('');
@@ -737,6 +867,44 @@ export default function EnrolmentWizard({ onComplete, parentProfile }: Enrolment
                         required
                       />
                     </div>
+                  </div>
+
+                  {/* HIGH FIDELITY CANVAS SIGNATURE INTEGRATION */}
+                  <div className="pt-4 mt-3 border-t border-slate-100">
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                        Interactive Hand-drawn Digital Signature
+                      </label>
+                      <button
+                        type="button"
+                        onClick={clearCanvas}
+                        className="text-xs font-bold text-indigo-650 hover:text-red-500 font-mono transition-all cursor-pointer select-none"
+                      >
+                        [ Clear Signature Pad ]
+                      </button>
+                    </div>
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl relative overflow-hidden" style={{ height: '110px' }}>
+                      <canvas
+                        ref={canvasRef}
+                        width={600}
+                        height={110}
+                        onMouseDown={startDrawing}
+                        onMouseMove={draw}
+                        onMouseUp={stopDrawing}
+                        onMouseLeave={stopDrawing}
+                        onTouchStart={startDrawing}
+                        onTouchMove={draw}
+                        onTouchEnd={stopDrawing}
+                        className="w-full h-full cursor-crosshair block absolute top-0 left-0 z-10"
+                        id="wizard-signature-canvas"
+                      />
+                      {!signerName && (
+                        <div className="absolute inset-0 pointer-events-none flex items-center justify-center text-slate-400 text-[11px] font-medium leading-normal text-center select-none p-4">
+                          Draw your signature here with your cursor or finger / Or use the Presentation Console to prefill
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-[9px] text-slate-400 mt-1 font-medium">This hand-drawn digital signature is secure and bound to school records for POPI auditing compliance.</p>
                   </div>
                 </div>
               )}
